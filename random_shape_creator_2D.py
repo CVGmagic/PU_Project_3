@@ -10,7 +10,7 @@ def single_point_rect(lower: np.ndarray, upper: np.ndarray):
 
 
 def create_rect_2D(lower: np.ndarray, upper: np.ndarray, n: int):
-    points = np.zeros((n, 3))
+    points = np.zeros((n, 2))
     for i in range(n):
         points[i] = single_point_rect(lower, upper)
     return points
