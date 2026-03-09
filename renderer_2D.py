@@ -5,3 +5,6 @@ def plot_2D(r: np.ndarray, ax):
     x = r[:, 0]
     y = r[:, 1]
     ax.plot(x, y)
+
+if __name__ != __main__:
+    print("2D renderer imported successfully")
