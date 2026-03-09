@@ -9,6 +9,13 @@ def single_point_rect(lower: np.ndarray, upper: np.ndarray):
     return point
 
 
+def create_rect_2D(lower: np.ndarray, upper: np.ndarray, n: int):
+    points = np.zeros((n, 3))
+    for i in range(n):
+        points[i] = single_point_rect(lower, upper)
+    return points
+
+
 def create_circle_2D(m : np.ndarray, r : int, n : int):
     """Returns a list of n points inside a circle with radius m around midpoint m"""
     points = np.zeros((n, 2))
