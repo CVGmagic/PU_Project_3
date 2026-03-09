@@ -15,14 +15,15 @@ def create_circle_2D(m : np.ndarray, r : int, n : int):
     lower = np.array([m[0] - r, m[1] - r])
     upper = np.array([m[0] + r, m[1] + r])
 
-    point = single_point_rect(lower, upper)
     for i in range(n):
-        while np.norm(point - m) > r:
+        point = single_point_rect(lower, upper)
+        while np.linalg.norm(point - m) > r:
             point = single_point_rect(lower, upper)
         points[i] = point
 
     return points
 
-
+"""
 if __name__ != __main__:
     print("2D shape creator imported successfully")
+    """
