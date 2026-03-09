@@ -1,4 +1,5 @@
-from src.simulation import random_shape_creator_2D, renderer_2D
+from simulation import random_shape_creator_2D
+from renderers import renderer_2D
 import numpy as np
 import matplotlib.pyplot as plt
 
