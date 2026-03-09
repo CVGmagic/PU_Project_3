@@ -30,7 +30,4 @@ def create_circle_2D(m : np.ndarray, r : int, n : int):
 
     return points
 
-"""
-if __name__ != __main__:
-    print("2D shape creator imported successfully")
-    """
+
