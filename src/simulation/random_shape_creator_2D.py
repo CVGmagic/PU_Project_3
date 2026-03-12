@@ -1,5 +1,5 @@
 import numpy as np
-
+//
 
 def single_point_rect(lower: np.ndarray, upper: np.ndarray):
     """Returns a single point inside the region bounded by the lower left and upper right corner of the rectangle"""
