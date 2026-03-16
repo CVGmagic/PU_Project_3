@@ -10,7 +10,7 @@ fig = plt.figure()
 ax = fig.add_subplot(projection="3d")
 renderer_3D.plot_points_3D(r, ax)
 plt.show()
-#TODO: explain Maïc the lines above
+#TODO: explain Maïc the 3 lines above
 acceleration = acceleration_calculator_3D.create_array_acc(r)
 # it works!
 
