@@ -39,11 +39,17 @@ def create_relaxed_sphere_3D(m : np.ndarray, r : int, n : int):
     r = create_sphere_3D(m, r, n)
     const = 0.1
     dt = 0.01
-    v = np.full(n, 0)
+    v = np.full((n, 3), 0, dtype=float)
+
+    # Update acceleration
+    diff = r[:, None, :] - r[None, :, :]
+    dist_sq = np.sum(diff * diff, axis=-1)
+    np.fill_diagonal(dist_sq, np.inf)
+    
+    inv_dist_cubed = 1 / (dist_sq * np.sqrt(dist_sq))
+    a = np.sum(diff * inv_dist3[:, :, None], axis=1) * const
 
     # Half velocity step
-    diff = r[:, None, :] - r[None, :, :]
-    a = const / (diff * diff)
     v += a * dt / 2
 
     for i in range(3): # We do some number of timesteps
