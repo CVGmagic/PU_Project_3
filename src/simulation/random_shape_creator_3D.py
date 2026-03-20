@@ -21,7 +21,7 @@ def create_cuboid_3D(lower: np.ndarray, upper: np.ndarray, n: int):
 
 
 def create_sphere_3D(m : np.ndarray, r : int, n : int):
-    """Returns a list of n points inside a circle with radius m around midpoint m"""
+    """Returns a list of n points inside a circle with radius r around midpoint m"""
     points = np.zeros((n, 3))
     lower = m - r
     upper = m + r

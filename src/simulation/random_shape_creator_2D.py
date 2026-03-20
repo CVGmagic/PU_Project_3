@@ -2,7 +2,7 @@ import numpy as np
 
 
 def single_point_rect(lower: np.ndarray, upper: np.ndarray):
-    """Returns a single point inside the region bounded by the lower left and upper right corner of the rectangle"""
+    # Returns a single point inside the region bounded by the lower left and upper right corner of the rectangle
     if not np.all(upper >= lower):
         raise ValueError("All coordinates of lower must be smaller than or equal the corresponding coordinate of upper")
 
@@ -11,16 +11,18 @@ def single_point_rect(lower: np.ndarray, upper: np.ndarray):
     point = np.array([lower[0] + np.random.random() * x_scale, lower[1] + np.random.random() * y_scale])
     return point
 
+# lower is the smallest coordinate of the square and upper is the biggest coordinate of the square in which all points spawn.
 
 def create_rect_2D(lower: np.ndarray, upper: np.ndarray, n: int):
-    points = np.zeros((n, 2))
+    points = np.zeros((n, 2)) 
+    # creates an array with n times [0,0]
     for i in range(n):
         points[i] = single_point_rect(lower, upper)
     return points
 
 
 def create_circle_2D(m : np.ndarray, r : int, n : int):
-    """Returns a list of n points inside a circle with radius m around midpoint m"""
+    """Returns a list of n points inside a circle with radius r around midpoint m"""
     points = np.zeros((n, 2))
     lower = m - r
     upper = m + r
