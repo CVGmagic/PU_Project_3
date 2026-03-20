@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 n = initial_conditions.n
 m = initial_conditions.mass
 
-r = random_shape_creator_3D.create_sphere_3D(np.array([0, 0, 0]), 1, n)
+r = random_shape_creator_3D.create_relaxed_sphere_3D(np.array([0, 0, 0]), 1, n)
 fig = plt.figure()
 ax = fig.add_subplot(projection="3d")
 renderer_3D.plot_points_3D(r, ax)
