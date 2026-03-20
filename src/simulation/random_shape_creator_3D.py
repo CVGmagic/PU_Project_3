@@ -35,10 +35,13 @@ def create_sphere_3D(m : np.ndarray, r : int, n : int):
     return points
 
 
-def create_relaxed_sphere_3D(m : np.ndarray, r : int, n : int):
-    """Returns a list of n points inside a sphere with radius r around midpoint m, which are slightly spread out"""
+def create_relaxed_sphere_3D(m: np.ndarray, r : int, n : int):
+    """
+    Returns a list of n points inside a sphere with radius r around midpoint m, which are slightly spread out
+    The Sphere's final radius will be larger than the initial radius
+    """
     r = create_sphere_3D(m, r, n)
-    mass = 10 # Points have high mass to make movement softer
+    mass = 100 # Points have high mass to make movement softer
     dt = 0.01
     v = np.full((n, 3), 0, dtype=float)
 

@@ -15,15 +15,15 @@ ax.set_aspect("equal")
 renderer_3D.plot_points_3D(r, ax)
 plt.pause(1e-30)
 
-dt = 0.005
+dt = 0.01
 v = np.zeros((n, 3))
-a = calc_acc_rep_np(r, 10)
+a = calc_acc_rep_np(r, 100)
 v += a * dt / 2
 
-while True:
+for i in range(30):
     r += v * dt
 
-    a = calc_acc_rep_np(r, 10)
+    a = calc_acc_rep_np(r, 100)
 
     v += a * dt
     ax.clear()
