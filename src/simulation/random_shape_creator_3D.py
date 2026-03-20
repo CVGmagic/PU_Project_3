@@ -50,7 +50,7 @@ def create_relaxed_sphere_3D(m : np.ndarray, r : int, n : int):
         r += v * dt
 
         # Recompute velocity
-        a = calc_acc_rep_np(r, m)
+        a = calc_acc_rep_np(r, mass)
 
         # Update velocity
         v += a * dt
