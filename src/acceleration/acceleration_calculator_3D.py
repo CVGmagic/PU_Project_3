@@ -4,7 +4,7 @@ import math
 # calculates how strong two points attract
 def calculate_acc(points: np.ndarray, a: int, b: int):
     r = math.sqrt(points[a]**2 + points[b]**2)
-    single_acc = 1 / r**3 * (points[b]-points[a])
+    single_acc = 1/(6.6743 × 10**(-11)) / r**3 * (points[b]-points[a])
     # F = G * m1 * m2 / r**3 * (points[b]-points[a]), a = F / m1 = G * m2 / r**3 * (points[b]-points[a])
     # define m2 = 1/G = 1/(6.6743 × 10**(-11)) = 15.0 * 10**9 kg
     return single_acc
