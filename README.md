@@ -3,7 +3,6 @@
 This is the PU Project of Maïc and Caius.
 
 
-TODO:define the masses of every point 
 TODO:somehow figure out the rotation around a central mass point
 TODO: by generating 1000 random points in a circle two points can get very close to each other having an insane amount of energy
 Idea: with every point generate a small dead zone or search a function that generates perfect circle and add some small randomness to get some energy in

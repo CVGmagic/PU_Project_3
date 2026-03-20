@@ -4,16 +4,15 @@ from acceleration import acceleration_calculator_3D
 import numpy as np
 import matplotlib.pyplot as plt
 
-
+n = initial_conditions.n
 m = initial_conditions.mass
-r = random_shape_creator_3D.create_sphere_3D(np.array([0, 0, 0]), 1, 1000)
+
+r = random_shape_creator_3D.create_sphere_3D(np.array([0, 0, 0]), 1, n)
 fig = plt.figure()
 ax = fig.add_subplot(projection="3d")
 renderer_3D.plot_points_3D(r, ax)
 plt.show()
 #TODO: explain Maïc the 3 lines above
-acceleration = acceleration_calculator_3D.create_array_acc(r)
+acceleration = acceleration_calculator_3D.create_array_acc(r, m)
 # it works!
 
-print(r)
-print(acceleration)
