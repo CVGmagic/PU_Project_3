@@ -30,11 +30,12 @@ def create_array_acc(points: np.ndarray, mass: np.ndarray):
     return acc
 
 
-def calc_acc_np(r, m):
-    diff = r[:, None, :] - r[None, :, :]
-    dist_sq = np.sum(diff * diff, axis=-1)
-    np.fill_diagonal(dist_sq, np.inf)
+def calc_acc_rep_np(r, m):
+    eps = 1e-12 # Adds small "minimum" distance to prevent very large acceleration
+    diff = r[:, None, :] - r[None, :, :] # stores 3D-vector between every two-point combination
+    dist_sq = np.sum(diff * diff, axis=-1) + eps # stores 1D distance between evry two-point combination
+    np.fill_diagonal(dist_sq, np.inf) # changes distance of two-point combination of same points to inf
+
     inv_dist_cubed = 1 / (dist_sq * np.sqrt(dist_sq))
     a = np.sum(diff * inv_dist_cubed[:, :, None], axis=1) / m
-
     return a

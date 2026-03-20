@@ -1,5 +1,5 @@
 import numpy as np
-
+from acceleration.acceleration_calculator_3D import calc_acc_rep_np
 
 def single_point_cuboid(lower: np.ndarray, upper: np.ndarray):
     """Returns a single point inside the region bounded by the lower left and upper right corner of the cuboid"""
@@ -37,27 +37,20 @@ def create_sphere_3D(m : np.ndarray, r : int, n : int):
 
 def create_relaxed_sphere_3D(m : np.ndarray, r : int, n : int):
     r = create_sphere_3D(m, r, n)
-    mass = 10
+    mass = 10 # Points have high mass to make movement softer
     dt = 0.01
     v = np.full((n, 3), 0, dtype=float)
 
-    # Update acceleration
-    diff = r[:, None, :] - r[None, :, :] # stores 3D-vector between every two-point combination
-    dist_sq = np.sum(diff * diff, axis=-1) # stores 1D distance between evry two-point combination
-    np.fill_diagonal(dist_sq, np.inf) # changes distance of two-point combination of same points to inf
-    
-    inv_dist_cubed = 1 / (dist_sq * np.sqrt(dist_sq)) 
-    a = np.sum(diff * inv_dist_cubed[:, :, None], axis=1) / mass
+    a = calc_acc_rep_np(r, mass)
 
     # Half velocity step
     v += a * dt / 2
 
-    for i in range(3): # We do some number of timesteps
+    for i in range(20): # We do some number of timesteps
         r += v * dt
 
         # Recompute velocity
-        diff = r[:, None, :] - r[None, :, :]
-        a = const / (diff * diff)
+        a = calc_acc_rep_np(r, m)
 
         # Update velocity
         v += a * dt
