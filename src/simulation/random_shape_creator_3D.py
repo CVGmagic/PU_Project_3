@@ -35,3 +35,9 @@ def create_sphere_3D(m : np.ndarray, r : int, n : int):
     return points
 
 
+def create_relaxed_sphere_3D(m : np.ndarray, r : int, n : int):
+    r = create_sphere_3D(m, r, n)
+
+    v = np.full(n, 0)
+
+
