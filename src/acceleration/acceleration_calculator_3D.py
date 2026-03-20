@@ -28,3 +28,13 @@ def create_array_acc(points: np.ndarray, mass: np.ndarray):
     for i in range(len(acc)):
         acc[i] = calculate_complete_acc(points, mass, i)
     return acc
+
+
+def calc_acc_np(r, m):
+    diff = r[:, None, :] - r[None, :, :]
+    dist_sq = np.sum(diff * diff, axis=-1)
+    np.fill_diagonal(dist_sq, np.inf)
+    inv_dist_cubed = 1 / (dist_sq * np.sqrt(dist_sq))
+    a = np.sum(diff * inv_dist_cubed[:, :, None], axis=1) / m
+
+    return a
