@@ -32,7 +32,7 @@ def create_array_acc(points: np.ndarray, mass: np.ndarray):
 
 
 def calc_acc_rep_np(r, m):
-    """Calculates a repulsive acceleration between point. The parameter only serves to slow the acceleration"""
+    """Calculates a repulsive acceleration between point. The parameter m only serves to slow the acceleration"""
     eps = 1e-12 # Adds small "minimum" distance to prevent very large acceleration
     diff = r[:, None, :] - r[None, :, :] # stores 3D-vector between every two-point combination
     dist_sq = np.sum(diff * diff, axis=-1) + eps # stores 1D distance between evry two-point combination
