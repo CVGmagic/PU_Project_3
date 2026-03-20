@@ -1,5 +1,6 @@
 import numpy as np
 import math
+from simulation.constants import G
 
 # calculates how strong two points attract
 def calculate_acc(points: np.ndarray, mass: np.ndarray, a: int, b: int):
@@ -31,6 +32,7 @@ def create_array_acc(points: np.ndarray, mass: np.ndarray):
 
 
 def calc_acc_rep_np(r, m):
+    """Calculates """
     eps = 1e-12 # Adds small "minimum" distance to prevent very large acceleration
     diff = r[:, None, :] - r[None, :, :] # stores 3D-vector between every two-point combination
     dist_sq = np.sum(diff * diff, axis=-1) + eps # stores 1D distance between evry two-point combination
