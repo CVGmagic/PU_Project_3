@@ -35,3 +35,25 @@ def create_sphere_3D(m : np.ndarray, r : int, n : int):
     return points
 
 
+def create_relaxed_sphere_3D(m : np.ndarray, r : int, n : int):
+    r = create_sphere_3D(m, r, n)
+    const = 0.1
+    dt = 0.01
+    v = np.full(n, 0)
+
+    # Half velocity step
+    diff = r[:, None, :] - r[None, :, :]
+    a = const / (diff * diff)
+    v += a * dt / 2
+
+    for i in range(3): # We do some number of timesteps
+        r += v * dt
+
+        # Recompute velocity
+        diff = r[:, None, :] - r[None, :, :]
+        a = const / (diff * diff)
+
+        # Update velocity
+        v += a * dt
+
+    return r
