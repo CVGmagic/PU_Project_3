@@ -46,7 +46,7 @@ def create_relaxed_sphere_3D(m : np.ndarray, r : int, n : int):
     dist_sq = np.sum(diff * diff, axis=-1) # stores 1D distance between evry two-point combination
     np.fill_diagonal(dist_sq, np.inf) # changes distance of two-point combination of same points to inf
     
-    inv_dist_cubed = 1 / (dist_sq * np.sqrt(dist_sq))
+    inv_dist_cubed = 1 / (dist_sq * np.sqrt(dist_sq)) 
     a = np.sum(diff * inv_dist_cubed[:, :, None], axis=1) / mass
 
     # Half velocity step
