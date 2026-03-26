@@ -1,5 +1,5 @@
 import numpy as np
 
-n = 1000
+n = 100
 
 mass = np.full(n, 1)

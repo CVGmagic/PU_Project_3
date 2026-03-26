@@ -43,7 +43,7 @@ view.camera = 'turntable'
 
 # Particle data
 r = random_shape_creator_3D.create_cuboid_3D(np.array([0, 0, 0]), np.array([5, 5, 5]), n)
-sizes = np.random.rand(n) * 5  # radius
+sizes = np.random.rand(n) * 10 # radius
 
 # Create markers (GPU points)
 scatter = scene.visuals.Markers()
@@ -70,3 +70,9 @@ def update(event):
 timer = app.Timer(0.016, connect=update, start=True)  # ~60 FPS
 app.run()
 
+"""
+VERY IMPORTANT !!!!!!!!
+My computer almost crashed after running the program with just 
+100 particles without this line
+"""
+canvas.close()
