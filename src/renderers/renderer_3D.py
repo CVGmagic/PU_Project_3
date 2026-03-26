@@ -17,9 +17,9 @@ def plot_points_3D_PyVis(r: np.ndarray, scatter, sizes=np.array([])) -> None:
     Creates a 3D plot on scatter using the positions in r, and the sizes in sizes.
     If no sizes are provided, 1 is used as a default size
     """
-    if sizes.size() == 0:
-        sizes = np.ones((r.size()))
-    elif sizes.size() != r.size():
+    if sizes.size == 0:
+        sizes = np.ones((r.size))
+    elif sizes.size != r.size:
         raise ValueError("r and sizes must have the same length")
 
     scatter.set_data(positions, size=sizes, face_color=(1, 1, 1, 1))
