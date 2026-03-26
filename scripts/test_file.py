@@ -42,8 +42,8 @@ view = canvas.central_widget.add_view()
 view.camera = 'turntable'
 
 # Particle data
-r = random_shape_creator_3D.create_cuboid_3D(np.array([0, 0, 0]), np.array([1, 1, 1]), n)
-sizes = np.random.rand(10000) * 5  # radius
+r = random_shape_creator_3D.create_cuboid_3D(np.array([0, 0, 0]), np.array([5, 5, 5]), n)
+sizes = np.random.rand(n) * 5  # radius
 
 # Create markers (GPU points)
 scatter = scene.visuals.Markers()
@@ -57,6 +57,7 @@ v += a * dt / 2
 
 def update(event):
     # update positions every frame
+    global r, v
     r += v * dt
 
     a = calc_acc_rep_np(r, 100)
