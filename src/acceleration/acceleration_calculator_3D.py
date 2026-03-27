@@ -2,10 +2,13 @@ import numpy as np
 import math
 from simulation.constants import G
 
+sigma = 0.5   # The 'size' of your particles.
+epsilon = 0.1 # The 'strength' of the bounce.
+k = 4 * epsilon * (sigma**12)
 # calculates how strong two points attract
 def calculate_acc(points: np.ndarray, mass: np.ndarray, a: int, b: int):
     r = math.sqrt((points[a][0] - points[b][0])**2 + (points[a][1] - points[b][1])**2 + (points[a][2] - points[b][2])**2)
-    single_acc = 1/(6.6743 * 10**(-11)) * mass[b]/ r**3 * (points[b]-points[a])
+    single_acc = ((6.6743 * 10**(-11)) * mass[b]/ r**3 - k/r**13)* (points[b]-points[a])
     # F = G * m1 * m2 / r**3 * (points[b]-points[a]), a = F / m1 = G * m2 / r**3 * (points[b]-points[a])
     return single_acc
 # returns the acceleration vector (incomplete acceleration)
@@ -31,6 +34,7 @@ def create_array_acc(points: np.ndarray, mass: np.ndarray):
     return acc
 
 
+
 def calc_acc_rep_np(r, m):
     """Calculates a repulsive acceleration between point. The parameter m only serves to slow the acceleration"""
     eps = 1e-12 # Adds small "minimum" distance to prevent very large acceleration
@@ -43,7 +47,7 @@ def calc_acc_rep_np(r, m):
     return a
 
 
-def calculate_attractive_acceleration(r, m):
+def calculate_complete_acceleration(r, m):
     """
     Calculates an attractive acceleration between points.
     Has epsilon, but no short distance repulsion.
