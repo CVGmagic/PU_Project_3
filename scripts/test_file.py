@@ -66,12 +66,12 @@ def update(event):
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
 
-timer = app.Timer(0.016, connect=update, start=True)  # ~60 FPS
-app.run()
+timer = app.Timer(0.016, connect=update, start=True)  # ~60 FPS but actually limited by calculations so same as while run do
+app.run() # starts the simulation
 
 """
 VERY IMPORTANT !!!!!!!!
 My computer almost crashed after running the program with just 
 100 particles without this line
 """
-canvas.close()
+canvas.close() # give memory free as soon as window gets closed
