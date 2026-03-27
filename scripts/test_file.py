@@ -1,6 +1,5 @@
 from simulation import random_shape_creator_2D, random_shape_creator_3D, initial_conditions
 from renderers import renderer_2D, renderer_3D
-from acceleration import acceleration_calculator_3D
 import numpy as np
 import matplotlib.pyplot as plt
 from acceleration.acceleration_calculator_3D import calc_acc_rep_np
@@ -37,23 +36,23 @@ acceleration = acceleration_calculator_3D.create_array_acc(r, m)
 """
 
 """ Try same with PyVis"""
-canvas = scene.SceneCanvas(keys='interactive', show=True)
-view = canvas.central_widget.add_view()
-view.camera = 'turntable'
+canvas = scene.SceneCanvas(keys='interactive', show=True) # creates a window
+view = canvas.central_widget.add_view() # adds a scene to window
+view.camera = 'turntable' # you can change perspective in your scene
 
 # Particle data
-r = random_shape_creator_3D.create_cuboid_3D(np.array([0, 0, 0]), np.array([5, 5, 5]), n)
-sizes = np.random.rand(n) * 10 # radius
+r = random_shape_creator_3D.create_cuboid_3D(np.array([0, 0, 0]), np.array([1, 1, 1]), n) # creates the random points
+sizes = np.random.rand(n) * 10 # saves a list with n-elements which all have different sizes
 
 # Create markers (GPU points)
-scatter = scene.visuals.Markers()
-renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
-view.add(scatter)
+scatter = scene.visuals.Markers() # an empty list (kinda)
+renderer_3D.plot_points_3D_PyVis(r, scatter, sizes) # fills scatter with coordinates + sizes
+view.add(scatter) # adds scatter (basically points) to view
 
 dt = 0.01
-v = np.zeros((n, 3))
-a = calc_acc_rep_np(r, 100)
-v += a * dt / 2
+v = np.zeros((n, 3)) # v has n elements in 3D filled with 0's
+a = calc_acc_rep_np(r, 100) # calculates the acceleration of every single r based on their location (r)
+v += a * dt / 2 # updates v
 
 def update(event):
     # update positions every frame
