@@ -53,6 +53,6 @@ def calculate_attractive_acceleration(r, m):
     dist_sq = np.sum(diff * diff, axis=-1) + eps_sq  # stores 1D distance between evry two-point combination squared
     np.fill_diagonal(dist_sq, np.inf)  # changes distance of two-point combination of same points to inf
 
-    inv_dist_cubed = 1 / (dist_sq * np.sqrt(dist_sq)) # = 1/d^3
-    a = -np.sum(diff * inv_dist_cubed[:, :, None], axis=1) / m
+    inv_dist_cubed = 1 / (dist_sq * np.sqrt(dist_sq))
+    a = -np.sum(diff * inv_dist_cubed[:, :, None] * m[None, :, None], axis = 1)
     return a
