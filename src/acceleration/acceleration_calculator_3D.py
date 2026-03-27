@@ -48,7 +48,7 @@ def calculate_attractive_acceleration(r, m):
     Calculates an attractive acceleration between points.
     Has epsilon, but no short distance repulsion.
     """
-    eps_sq = 1e12 # Adds small "minimum" distance to prevent very large acceleration
+    eps_sq = 1e-12 # Adds small "minimum" distance to prevent very large acceleration
     diff = r[:, None, :] - r[None, :, :]  # stores 3D-vector between every two-point combination
     dist_sq = np.sum(diff * diff, axis=-1) + eps_sq  # stores 1D distance between evry two-point combination
     np.fill_diagonal(dist_sq, np.inf)  # changes distance of two-point combination of same points to inf
