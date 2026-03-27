@@ -2,6 +2,7 @@ from vispy import scene, app
 from acceleration.acceleration_calculator_3D import calculate_attractive_acceleration
 import numpy as np
 from renderers import renderer_3D
+from simulation.energy_calculator import get_total_energy
 
 canvas = scene.SceneCanvas(keys='interactive', show=True)
 view = canvas.central_widget.add_view()
@@ -32,8 +33,7 @@ def update(event):
 
     """ Print distance for debugging"""
     dist = r[0] - r[1]
-    print(np.sqrt(np.sum(dist * dist)))
-    print(np.sqrt(np.sum(v[1] * v[1])))
+    print(get_total_energy(r, m, v))
 
     a = calculate_attractive_acceleration(r, m)
 

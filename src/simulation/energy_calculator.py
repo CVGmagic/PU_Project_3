@@ -6,7 +6,7 @@ def get_gravitational_energy(r, m) -> float:
     dist = np.linalg.norm(diff, axis=-1) # Gets the lengths of all differences
 
     pairwise_mass = m[:, None] * m[None, :]
-    pairwise_energy = -G * pairwise_mass
+    pairwise_energy = -G * pairwise_mass / dist
     total_energy = np.sum(np.triu(pairwise_energy, k=1)) # Takes the sum of all elements above the diagonal (every pair is only included once and both particles have to be different)
     return total_energy
 

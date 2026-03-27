@@ -47,7 +47,7 @@ def calc_acc_rep_np(r, m):
     return a
 
 
-def calculate_complete_acceleration(r, m):
+def calculate_atractive_acceleration(r, m):
     """
     Calculates an attractive acceleration between points.
     Has epsilon, but no short distance repulsion.
