@@ -2,15 +2,16 @@ from vispy import scene, app
 from acceleration.acceleration_calculator_3D import calculate_attractive_acceleration
 import numpy as np
 from renderers import renderer_3D
+from simulation.random_shape_creator_3D import sphe
 
 canvas = scene.SceneCanvas(keys='interactive', show=True)
 view = canvas.central_widget.add_view()
 view.camera = 'turntable'
 
 # Particle data
-r = np.array([[0, 0, 0], [2, 0, 0]], dtype=float)
-sizes = np.array([10, 1])
-m = np.array([10, 10])
+r = np.array([[0, 0, 0], [5, 0, 0], [5.5, 0, 0]], dtype=float)
+sizes = np.array([20, 10, 10])
+m = np.array([1000, 1, 1])
 
 # Create markers (GPU points)
 scatter = scene.visuals.Markers()
@@ -20,7 +21,8 @@ view.camera.set_range()
 
 dt = 0.01
 v = np.zeros((r.shape[0], 3))
-v[1] = [0, 1, 0]
+v[1] = [0, 14, 0]
+v[2] = [0, 14, 0]
 a = calculate_attractive_acceleration(r, m)
 v += a * dt / 2
 
@@ -31,6 +33,8 @@ def update(event):
 
     """ Print distance for debugging"""
     dist = r[0] - r[1]
+    print(np.sqrt(np.sum(dist * dist)))
+    print(np.sqrt(np.sum(v[1] * v[1])))
 
     a = calculate_attractive_acceleration(r, m)
 
@@ -39,7 +43,7 @@ def update(event):
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
 
-timer = app.Timer(1, connect=update, start=True)  # ~60 FPS
+timer = app.Timer(1e-32, connect=update, start=True)  # ~60 FPS
 app.run()
 
 """

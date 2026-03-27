@@ -50,7 +50,7 @@ def calculate_attractive_acceleration(r, m):
     """
     eps_sq = 1e-12 # Adds small "minimum" distance to prevent very large acceleration
     diff = r[:, None, :] - r[None, :, :]  # stores 3D-vector between every two-point combination
-    dist_sq = np.sum(diff * diff, axis=-1) + eps_sq  # stores 1D distance between evry two-point combination
+    dist_sq = np.sum(diff * diff, axis=-1) + eps_sq # stores 1D distance between evry two-point combination
     np.fill_diagonal(dist_sq, np.inf)  # changes distance of two-point combination of same points to inf
 
     inv_dist_cubed = 1 / (dist_sq * np.sqrt(dist_sq))
