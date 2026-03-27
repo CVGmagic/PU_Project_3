@@ -50,16 +50,19 @@ renderer_3D.plot_points_3D_PyVis(r, scatter, sizes) # fills scatter with coordin
 view.add(scatter) # adds scatter (basically points) to view
 
 dt = 0.01
+m = np.full(n+1, 1) # creates array with n elements and (masses of one)
 v = np.zeros((n, 3)) # v has n elements in 3D filled with 0's
 a = calc_acc_rep_np(r, 100) # calculates the acceleration of every single r based on their location (r)
+
+m[n] = 333000
 v += a * dt / 2 # updates v
 
 def update(event):
     # update positions every frame
-    global r, v
+    global r, v, m
     r += v * dt
 
-    a = calc_acc_rep_np(r, 100)
+    a = calc_acc_rep_np(r, m)
 
     v += a * dt
 
