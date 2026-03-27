@@ -54,5 +54,5 @@ def calculate_attractive_acceleration(r, m):
     np.fill_diagonal(dist_sq, np.inf)  # changes distance of two-point combination of same points to inf
 
     inv_dist_cubed = 1 / (dist_sq * np.sqrt(dist_sq))
-    a = -np.sum(diff * inv_dist_cubed[:, :, None], axis=1) / m
+    a = -np.sum(diff * inv_dist_cubed[:, :, None] * m[None, :, None], axis = 1)
     return a
