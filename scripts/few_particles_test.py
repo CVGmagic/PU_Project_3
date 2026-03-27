@@ -2,7 +2,6 @@ from vispy import scene, app
 from acceleration.acceleration_calculator_3D import calculate_attractive_acceleration
 import numpy as np
 from renderers import renderer_3D
-from simulation.random_shape_creator_3D import sphe
 
 canvas = scene.SceneCanvas(keys='interactive', show=True)
 view = canvas.central_widget.add_view()

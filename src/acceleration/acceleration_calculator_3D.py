@@ -33,12 +33,12 @@ def create_array_acc(points: np.ndarray, mass: np.ndarray):
 
 def calc_acc_rep_np(r, m):
     """Calculates a repulsive acceleration between point. The parameter m only serves to slow the acceleration"""
-    eps = 1e-12 # Adds small "minimum" distance to prevent very large acceleration
+    eps_sq = 1e-12 # Adds small "minimum" distance to prevent very large acceleration
     diff = r[:, None, :] - r[None, :, :] # stores 3D-vector between every two-point combination
-    dist_sq = np.sum(diff * diff, axis=-1) + eps # stores 1D distance between evry two-point combination squared
+    dist_sq = np.sum(diff * diff, axis=-1)  # stores 1D distance between evry two-point combination squared
     np.fill_diagonal(dist_sq, np.inf) # changes distance of two-point combination of same points to inf
 
-    inv_dist_cubed = 1 / (dist_sq * np.sqrt(dist_sq)) # = 1/d^3
+    inv_dist_cubed = 1 / (dist_sq * np.sqrt(dist_sq) + eps_sq) # = 1/d^3
     a = np.sum(diff * inv_dist_cubed[:, :, None] * m[None, :, None], axis=1)
     return a
 
@@ -50,9 +50,9 @@ def calculate_attractive_acceleration(r, m):
     """
     eps_sq = 1e-12 # Adds small "minimum" distance to prevent very large acceleration
     diff = r[:, None, :] - r[None, :, :]  # stores 3D-vector between every two-point combination
-    dist_sq = np.sum(diff * diff, axis=-1) + eps_sq  # stores 1D distance between evry two-point combination squared
+    dist_sq = np.sum(diff * diff, axis=-1) # stores 1D distance between evry two-point combination squared
     np.fill_diagonal(dist_sq, np.inf)  # changes distance of two-point combination of same points to inf
 
-    inv_dist_cubed = 1 / (dist_sq * np.sqrt(dist_sq))
+    inv_dist_cubed = 1 / (dist_sq * np.sqrt(dist_sq) + eps_sq)
     a = -np.sum(diff * inv_dist_cubed[:, :, None] * m[None, :, None], axis = 1)
     return a
