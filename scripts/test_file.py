@@ -58,9 +58,13 @@ a = calc_acc_rep_np(r, m) # calculates the acceleration of every single r based 
 #m[n] = 33300000
 v += a * dt / 2 # updates v
 
-def update(event):
+step_count = 0
+max_steps = 10
+
+def update_starting_position(event):
     # update positions every frame
-    global r, v, m
+    global r, v, m, max_steps, step_count
+
     r += v * dt
 
     a = calc_acc_rep_np(r, m)
@@ -69,9 +73,20 @@ def update(event):
 
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
+    if step_count == max_steps:
+        timer1.stop()  # stop calling update
+        timer2.start()
+        return
+    step_count += 1
 
-timer = app.Timer(0.016, connect=update, start=True)  # ~60 FPS but actually limited by calculations so same as while run do
+def update_simulation(event): # What does the 'event' do?
+
+
+timer1 = app.Timer(0.016, connect=update_starting_position, start=True)  # ~60 FPS but actually limited by calculations so same as while run do
+timer2 = app.Timer(0.016, connect=update_simulation, start=False)
 app.run() # starts the simulation
+
+
 
 """
 VERY IMPORTANT !!!!!!!!
