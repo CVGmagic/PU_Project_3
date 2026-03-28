@@ -1,15 +1,10 @@
 #include <bits/stdc++.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
 #define int int64_t
 using namespace std;
+namespace py = pybind11;
 
-
-vector<Node> nodes; // Stores all the nodes. Root is at 0
-vector<Vec3> particles; // Stores all the particles
-vector<int> m; // Stores masses
-double eps = 0.01; // Prevents infinite forces
-double eps_sq = eps * eps;
-double theta = 0.4; // Opening angle, controlls aggressiveness of pruning
-double G = 1; // PLACEHOLDER # TODO
 
 
 struct Vec3 { // My own vector class, to make calculations cleaner
@@ -27,6 +22,7 @@ struct Vec3 { // My own vector class, to make calculations cleaner
 };
 
 
+
 struct Node { // Node class to cleanly group data
     double mass;
     Vec3 com; // center of mass
@@ -36,6 +32,108 @@ struct Node { // Node class to cleanly group data
     int children[8]; // Array of int with size 8 (indices of the 8 children)
     int particle; // Index of the particle, -1 if it's not a leaf
 };
+
+
+
+vector<Node> nodes; // Stores all the nodes. Root is at 0
+vector<Vec3> particles; // Stores all the particles
+py::array_t<double> m; // Stores masses
+double eps = 0.01; // Prevents infinite forces
+double eps_sq = eps * eps;
+double theta = 0.4; // Opening angle, controlls aggressiveness of pruning
+double G = 1; // PLACEHOLDER # TODO
+
+
+// Gets the numpy array from python and returns the result
+py::array_t<double> compute_accelerations(py::array_t<double> positions, py::array_t<double> masses) {
+    
+    py::array_t<double> result = py::array::ensure(positions).copy(); 
+
+    particles = numpy_to_vec3(result); // Get particles as vector<Vec3>
+    m = masses; // Assign masses to a global variable
+
+    double lower_x = DBL_MAX;
+    double lower_y = DBL_MAX;
+    double lower_z = DBL_MAX;
+
+    double upper_x = -DBL_MAX;
+    double upper_y = -DBL_MAX;
+    double upper_z = -DBL_MAX;
+
+    for (Vec3& p : particles) {
+        lower_x = min(lower_x, p.x);
+        lower_y = min(lower_y, p.y);
+        lower_z = min(lower_z, p.z);
+
+        upper_x = max(upper_x, p.x);
+        upper_y = max(upper_y, p.y);
+        upper_z = max(upper_z, p.z);
+    }
+
+   
+    Vec3 root_center;
+    root_center.x = 0;
+    root_center.y = 0;
+    root_center.z = 0;
+
+    Node root;
+    root.center = root_center;
+    root.half_size = max(abs(lower_x), max(abs(lower_y), max(abs(lower_z), max(abs(upper_x), max(abs(upper_y), abs(upper_z))))));
+
+    nodes.push_back(root);
+
+    // Build tree
+    for (int i = 0; i < particles.size(); i++) {
+        insert(0, i); // Insert particle into root node
+    }
+
+    // Set masses coms
+    set_mass_and_com(0);
+
+    vector<Vec3> accelerations(particles.size());
+    for (int i = 0; i < particles.size(); i++) {
+        accelerations[i] = acceleration(0, i);
+    }
+
+    auto buf = result.request();
+    double* ptr = static_cast<double*>(buf.ptr);
+    size_t N = buf.shape[0];
+
+    for (size_t i=0; i<N; i++) {
+        ptr[i*3+0] = accelerations[i].x;
+        ptr[i*3+1] = accelerations[i].y;
+        ptr[i*3+2] = accelerations[i].z;
+    }
+
+    return result;
+}
+
+
+
+
+
+vector<Vec3> numpy_to_vec3(py::array_t<double> positions) {
+    // Converts the numpy array to vec3 for cleaner code
+    auto buf = positions.request(); // Stores a buffer object, which basically contains all information about the array
+    
+    if (buf.ndim != 2 or buf.shape[1] != 3)
+        throw runtime_error("positions must have shape (N,3)");
+
+    int N = buf.shape[0];
+    // ptr is a pointer to the first element in the array. This allows us to do pointer arithmetic
+    double* ptr = static_cast<double*>(buf.ptr); 
+
+    vector<Vec3> result(N);
+    for (int i = 0; i < N; i++) {
+        Vec3 res;
+        res.x = ptr[i*3 + 0];
+        res.y = ptr[i*3 + 1];
+        res.z = ptr[i*3 + 2];
+        result[i] = res;
+    }
+
+    return result;
+}
 
 
 bool has_children(Node& node) {
@@ -211,10 +309,10 @@ void insert(int node_idx, int p_idx) {
 }
 
 
-void compute_mass_and_com(int node_idx) {
+void set_mass_and_com(int node_idx) {
     Node& node = nodes[node_idx];
 
-    if (node.particle = -1) { // leaf
+    if (node.particle == -1) { // leaf
         node.mass = m[node.particle];
         node.com = particles[node.particle];
         return;
@@ -227,7 +325,7 @@ void compute_mass_and_com(int node_idx) {
     node.com.z = 0;
 
     for (int i = 0; i < 8; i++) {
-        compute_mass_and_com(node.children[i]); // Update children first
+        set_mass_and_com(node.children[i]); // Update children first
 
         Node& child = nodes[node.children[i]];
         node.mass += child.mass; // Add child mass to total mass
@@ -248,29 +346,40 @@ double norm_sq(Vec3& vec) {
 }
 
 
-Vec3 force(int node_idx, int p_idx) {
-    // Recursively computes the force applied to particle p by all 
+Vec3 acceleration(int node_idx, int p_idx) {
+    // Recursively computes the acceleration applied to particle p by all 
     // the particles inside the node
 
     Node& node = nodes[node_idx];
 
     // No mass or same particle
     if (node.mass == 0 or node.particle == p_idx) {
-        Vec3 force;
-        force.x = 0;
-        force.y = 0;
-        force.z = 0;
-        return force;
+        Vec3 f;
+        f.x = 0;
+        f.y = 0;
+        f.z = 0;
+        return f;
     }
 
     Vec3 d = node.com - particles[p_idx];
     double dist_sq = norm_sq(d);
-    double dist = sqrt(dist_sq);
+    double dist = sqrt(dist_sq + eps_sq);
+    double inv_dist_cubed = 1 / ((dist_sq + eps_sq) * dist);
 
+    // Approximation is good enough
     if (node.half_size / dist < theta) {
-        // Approximation is good
-        return G *
+        return d * (G * node.mass * inv_dist_cubed);
     }
 
+    // Otherwise, recurse
+    Vec3 f;
+    f.x = 0;
+    f.y = 0;
+    f.z = 0;
 
+    for (int i = 0; i < 8; i++) {
+        f += acceleration(node.children[i], p_idx);
+    }
+
+    return f;
 }
