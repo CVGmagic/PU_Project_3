@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from simulation.constants import G, epsilon
+from simulation.constants import G, eps_sq
 """
 sigma = 0.5   # The 'size' of your particles.
 epsilon = 0.1 # The 'strength' of the bounce.
@@ -36,9 +36,6 @@ def create_array_acc(points: np.ndarray, mass: np.ndarray):
 
 """
 
-eps = 1e-12
-eps_sq = eps * eps # Adds small "minimum" distance to prevent very large acceleration
-
 def calc_acc_rep_np(r, m):
     """Calculates a repulsive acceleration between point. The parameter m only serves to slow the acceleration"""
     diff = r[:, None, :] - r[None, :, :] # stores 3D-vector between every two-point combination
@@ -59,10 +56,8 @@ def calculate_complete_acceleration(r, m):
     dist_sq = np.sum(diff * diff, axis=-1) + eps_sq  # stores 1D distance between evry two-point combination squared
     np.fill_diagonal(dist_sq, np.inf)  # changes distance of two-point combination of same points to inf
 
-    inv_dist_cubed = 1 / ((dist_sq + eps_sq) * np.sqrt(dist_sq + eps_sq)) # Same as standard 1 / (r^2 + eps^2)^(3/2)
-    a = -np.sum(diff * inv_dist_cubed[:, :, None] * m[None, :, None], axis = 1)
-    inv_dist_cubed = 1 / (dist_sq * np.sqrt(dist_sq))
+    inv_dist_3 = 1 / (dist_sq * np.sqrt(dist_sq))
     inv_dist_8 = 1 / dist_sq**4
 
-    a = -np.sum(diff * (inv_dist_cubed[:, :, None] - inv_dist_8[:, :, None]) * m[None, :, None], axis = 1)
+    a = -np.sum(diff * (inv_dist_3[:, :, None] - inv_dist_8[:, :, None]) * m[None, :, None], axis = 1)
     return a

@@ -3,6 +3,7 @@ from renderers import renderer_2D, renderer_3D
 import numpy as np
 import matplotlib.pyplot as plt
 from acceleration.acceleration_calculator_3D import calc_acc_rep_np, calculate_complete_acceleration
+from simulation.constants import G, eps_sq
 from vispy import scene, app
 
 n = initial_conditions.n
@@ -61,13 +62,38 @@ v += a * dt / 2 # updates v
 step_count = 1
 max_steps = 100
 
+
+def calculate_separate_potential_energies(r, m):
+    """
+    Calculates Gravity PE and Pressure PE in one pass.
+    Returns: (gravity_potential_energy, pressure_potential_energy)
+    """
+    # 1. Core distance calculations
+    diff = r[:, None, :] - r[None, :, :]
+    dist_sq = np.sum(diff * diff, axis=-1) + eps_sq
+    np.fill_diagonal(dist_sq, np.inf)
+
+    # 2. Shared variables
+    dist = np.sqrt(dist_sq)
+    mass_matrix = m[:, None] * m[None, :]
+
+    # 3. Gravity Energy (Integral of 1/r^2 is -1/r)
+    # Using the 0.5 here to account for double-counting pairs
+    gravity_potential_energy = -0.5 * np.sum(mass_matrix * (1 / dist))
+
+    # 4. Pressure Energy (Integral of 1/r^8 is 1/(7 * r^7))
+    # r^7 = (dist_sq^3 * dist)
+    pressure_potential_energy = 0.5 * np.sum(mass_matrix * (1 / (7 * dist_sq ** 3 * dist)))
+
+    return gravity_potential_energy, pressure_potential_energy
+
+
 def update_conditions(): #  'event' is needed with the timer which later allows the command timer.stop()
     global r, v, m, dt
 
-    sum_acc_gravity = 0
-    sum_acc_pressure = 0
+    sum_acc_gravity, sum_acc_pressure = calculate_separate_potential_energies(r, m)
 
-    #for i in range(n):
+    energy_relation = sum_acc_gravity / sum_acc_pressure
 
     a = calculate_complete_acceleration(r, m)
     v = a * dt

@@ -1,3 +1,4 @@
 G = 6.674e-11
 
-epsilon = 1e-2
+epsilon = 1e-12
+eps_sq = epsilon * epsilon # Adds small "minimum" distance to prevent very large acceleration
