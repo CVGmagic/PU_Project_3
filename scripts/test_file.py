@@ -54,14 +54,12 @@ len(m) == len(r)"""
 dt = 0.0001
 m = np.full(n, 100) # creates array with n elements and (masses of 100)
 v = np.zeros((n, 3)) # v has n elements in 3D filled with 0's
-a = calc_acc_rep_np(r, m, 0) # calculates the acceleration of every single r based on their location (r)
+a = calc_acc_rep_np(r, m) # calculates the acceleration of every single r based on their location (r)
 #m[n] = 33300000
 v += a * dt / 2 # updates v
 
 step_count = 1
 max_steps = 100
-
-power_coefficient = 0
 
 def update_conditions(): #  'event' is needed with the timer which later allows the command timer.stop()
     global r, v, m, dt
@@ -78,11 +76,11 @@ def update_conditions(): #  'event' is needed with the timer which later allows 
 
 def update_starting_position(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with wrong gravity
-    global r, v, m, dt, max_steps, step_count, power_coefficient
+    global r, v, m, dt, max_steps, step_count
 
     r += v * dt
 
-    a = calc_acc_rep_np(r, m, power_coefficient)
+    a = calc_acc_rep_np(r, m)
 
     v += a * dt
 
@@ -92,14 +90,9 @@ def update_starting_position(event): #  'event' is needed with the timer which l
 
         update_conditions()
 
-        if step_count == 2 * max_steps:
+        timer1.stop()  # stop calling update
+        timer2.start()  # start new function
 
-            update_conditions()
-            timer1.stop()  # stop calling update
-            timer2.start() # start new function
-
-        step_count += 1
-        power_coefficient += 1
         return
 
     step_count += 1
