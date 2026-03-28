@@ -1,5 +1,5 @@
 import numpy as np
-
+from simulation.constants import epsilon
 
 def single_point_cuboid(lower: np.ndarray, upper: np.ndarray):
     """Returns a single point inside the region bounded by the lower left and upper right corner of the cuboid"""
@@ -35,18 +35,19 @@ def create_sphere_3D(m : np.ndarray, r : int, n : int):
     return points
 
 
-def create_relaxed_sphere_3D(m : np.ndarray, r : int, n : int):
+def create_relaxed_sphere_3D(m : np.ndarray, r : float, n : int) -> np.ndarray:
     r = create_sphere_3D(m, r, n)
     mass = 10
     dt = 0.01
     v = np.full((n, 3), 0, dtype=float)
+    eps_sq = epsilon * epsilon
 
     # Update acceleration
     diff = r[:, None, :] - r[None, :, :] # stores 3D-vector between every two-point combination
     dist_sq = np.sum(diff * diff, axis=-1) # stores 1D distance between evry two-point combination
     np.fill_diagonal(dist_sq, np.inf) # changes distance of two-point combination of same points to inf
     
-    inv_dist_cubed = 1 / (dist_sq * np.sqrt(dist_sq)) 
+    inv_dist_cubed = 1 / ((dist_sq + eps_sq) * np.sqrt(dist_sq + eps_sq))
     a = np.sum(diff * inv_dist_cubed[:, :, None], axis=1) / mass
 
     # Half velocity step
@@ -55,9 +56,13 @@ def create_relaxed_sphere_3D(m : np.ndarray, r : int, n : int):
     for i in range(3): # We do some number of timesteps
         r += v * dt
 
-        # Recompute velocity
-        diff = r[:, None, :] - r[None, :, :]
-        a = const / (diff * diff)
+        # Recompute acceleration
+        diff = r[:, None, :] - r[None, :, :]  # stores 3D-vector between every two-point combination
+        dist_sq = np.sum(diff * diff, axis=-1)  # stores 1D distance between evry two-point combination
+        np.fill_diagonal(dist_sq, np.inf)  # changes distance of two-point combination of same points to inf
+
+        inv_dist_cubed = 1 / ((dist_sq + eps_sq) * np.sqrt(dist_sq + eps_sq))
+        a = np.sum(diff * inv_dist_cubed[:, :, None], axis=1) / mass
 
         # Update velocity
         v += a * dt
