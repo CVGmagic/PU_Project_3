@@ -35,7 +35,7 @@ def update(event):
     dist = r[0] - r[1]
     print(get_total_energy(r, m, v))
 
-    a = calculate_attractive_acceleration(r, m)
+    a = calculate_gravitational_acceleration(r, m)
 
     v += a * dt
 
