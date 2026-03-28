@@ -51,50 +51,58 @@ view.add(scatter) # adds scatter (basically points) to view
 
 """ add n -> n+1 and add line 57 when we add the sum but also add the coordinate of the sun that it works
 len(m) == len(r)"""
-dt = 0.001
+dt = 0.0001
 m = np.full(n, 100) # creates array with n elements and (masses of 100)
 v = np.zeros((n, 3)) # v has n elements in 3D filled with 0's
-a = calc_acc_rep_np(r, m) # calculates the acceleration of every single r based on their location (r)
+a = calc_acc_rep_np(r, m, 0) # calculates the acceleration of every single r based on their location (r)
 #m[n] = 33300000
 v += a * dt / 2 # updates v
 
-step_count = 0
-max_steps = 10
+step_count = 1
+max_steps = 100
 
-def update_starting_position(event): #  'event' is needed with the timer which later allows the command timer.stop()
-    # update positions every frame with wrong gravity
-    global r, v, m, dt, max_steps, step_count
+power_coefficient = 0
 
-    r += v * dt
-
-    a = calc_acc_rep_np(r, m)
-
-    v += a * dt
-
-    renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
-
-    if step_count == max_steps:
-        timer1.stop()  # stop calling update
-        timer2.start()
-        return
-    step_count += 1
-
-def update_conditions(event): #  'event' is needed with the timer which later allows the command timer.stop()
+def update_conditions(): #  'event' is needed with the timer which later allows the command timer.stop()
     global r, v, m, dt
-
-    a = calculate_complete_acceleration(r, m)
-    v = a * dt
 
     sum_acc_gravity = 0
     sum_acc_pressure = 0
 
     #for i in range(n):
 
-
-    timer2.stop()
-    timer3.start()
+    a = calculate_complete_acceleration(r, m)
+    v = a * dt
 
     return
+
+def update_starting_position(event): #  'event' is needed with the timer which later allows the command timer.stop()
+    # update positions every frame with wrong gravity
+    global r, v, m, dt, max_steps, step_count, power_coefficient
+
+    r += v * dt
+
+    a = calc_acc_rep_np(r, m, power_coefficient)
+
+    v += a * dt
+
+    renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
+
+    if step_count % max_steps == 0:
+
+        update_conditions()
+
+        if step_count == 2 * max_steps:
+
+            update_conditions()
+            timer1.stop()  # stop calling update
+            timer2.start() # start new function
+
+        step_count += 1
+        power_coefficient += 1
+        return
+
+    step_count += 1
 
 def update_simulation(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with correct gravity
@@ -109,8 +117,7 @@ def update_simulation(event): #  'event' is needed with the timer which later al
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
 timer1 = app.Timer(0.016, connect=update_starting_position, start=True)  # ~60 FPS but actually limited by calculations so same as while run do
-timer2 = app.Timer(0.001, connect=update_conditions, start=False) # should simply be done as quickly as possible
-timer3 = app.Timer(0.016, connect=update_simulation, start=False) # ~60 FPS but actually limited by calculations so same as while run do
+timer2 = app.Timer(0.016, connect=update_simulation, start=False) # ~60 FPS but actually limited by calculations so same as while run do
 app.run() # starts the simulation
 
 
