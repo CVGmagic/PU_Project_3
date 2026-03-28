@@ -2,7 +2,7 @@ from simulation import random_shape_creator_2D, random_shape_creator_3D, initial
 from renderers import renderer_2D, renderer_3D
 import numpy as np
 import matplotlib.pyplot as plt
-from acceleration.acceleration_calculator_3D import calc_acc_rep_np, calculate_complete_acceleration, create_array_acc
+from acceleration.acceleration_calculator_3D import calc_acc_rep_np, calculate_complete_acceleration
 from vispy import scene, app
 
 n = initial_conditions.n
