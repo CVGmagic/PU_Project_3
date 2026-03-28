@@ -6,28 +6,32 @@ using namespace std;
 vector<Node> nodes; // Stores all the nodes. Root is at 0
 vector<Vec3> particles; // Stores all the particles
 vector<int> m; // Stores masses
+double eps = 0.01; // Prevents infinite forces
+double eps_sq = eps * eps;
+double theta = 0.4; // Opening angle, controlls aggressiveness of pruning
+double G = 1; // PLACEHOLDER # TODO
 
 
 struct Vec3 { // My own vector class, to make calculations cleaner
-    int x, y, z;
+    double x, y, z;
 
     // Define the most important operations for the vector
     Vec3 operator+(const Vec3& o) const { return {x+o.x, y+o.y, z+o.z}; }
     Vec3 operator-(const Vec3& o) const { return {x-o.x, y-o.y, z-o.z}; }
-    Vec3 operator*(int s) const { return {x*s, y*s, z*s}; }
-    Vec3 operator/(int s) const { return {x/s, y/s, z/s}; }
+    Vec3 operator*(double s) const { return {x*s, y*s, z*s}; }
+    Vec3 operator/(double s) const { return {x/s, y/s, z/s}; }
     Vec3& operator+=(const Vec3& o) { x+=o.x; y+=o.y; z+=o.z; return *this; }
     Vec3& operator-=(const Vec3& o) { x-=o.x; y-=o.y; z-=o.z; return *this; }
-    Vec3& operator*=(int s) { x*=s; y*=s; z*=s; return *this; }
-    Vec3& operator/=(int s) { x/=s; y/=s; z/=s; return *this; }
+    Vec3& operator*=(double s) { x*=s; y*=s; z*=s; return *this; }
+    Vec3& operator/=(double s) { x/=s; y/=s; z/=s; return *this; }
 };
 
 
 struct Node { // Node class to cleanly group data
-    int mass;
+    double mass;
     Vec3 com; // center of mass
     Vec3 center; // center of the cube
-    int half_size;
+    double half_size;
 
     int children[8]; // Array of int with size 8 (indices of the 8 children)
     int particle; // Index of the particle, -1 if it's not a leaf
@@ -206,6 +210,7 @@ void insert(int node_idx, int p_idx) {
     insert(node_idx, old_p_idx);
 }
 
+
 void compute_mass_and_com(int node_idx) {
     Node& node = nodes[node_idx];
 
@@ -230,4 +235,42 @@ void compute_mass_and_com(int node_idx) {
     }
 
     node.com /= node.mass; // Fix the scaling caused by the mass (basically a weighted average)
+}
+
+
+double norm(Vec3& vec) {
+    return sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
+}
+
+
+double norm_sq(Vec3& vec) {
+    return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
+}
+
+
+Vec3 force(int node_idx, int p_idx) {
+    // Recursively computes the force applied to particle p by all 
+    // the particles inside the node
+
+    Node& node = nodes[node_idx];
+
+    // No mass or same particle
+    if (node.mass == 0 or node.particle == p_idx) {
+        Vec3 force;
+        force.x = 0;
+        force.y = 0;
+        force.z = 0;
+        return force;
+    }
+
+    Vec3 d = node.com - particles[p_idx];
+    double dist_sq = norm_sq(d);
+    double dist = sqrt(dist_sq);
+
+    if (node.half_size / dist < theta) {
+        // Approximation is good
+        return G *
+    }
+
+
 }
