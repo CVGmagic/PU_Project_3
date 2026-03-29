@@ -275,6 +275,14 @@ void insert(int node_idx, int p_idx) {
     // Insert particle p_idx into node node_idx
     Node& node = nodes[node_idx]; // Only store reference, avoid copying
 
+    cerr << "node.particle = " << node.particle  << "\n";
+
+    cerr << "children:\n";
+    for (int i = 0; i < 8; i++) {
+        cerr << node.children[i] << "\n";
+    }
+    cerr << "\n";
+
     // Empty leaf
     if (node.particle == -1 and not has_children(node)) {
         cerr << "empty leaf\n";
