@@ -322,6 +322,10 @@ void set_mass_and_com(int node_idx) {
     }
 
     for (int i = 0; i < 8; i++) {
+        if (node.children[i] == -1) {
+            continue;
+        }
+        
         set_mass_and_com(node.children[i]); // Update children first
 
         Node& child = nodes[node.children[i]];
@@ -352,7 +356,7 @@ Vec3 acceleration(int node_idx, int p_idx) {
     Node& node = nodes[node_idx];
 
     // No mass or same particle
-    if (node.mass == 0 or node.particle == p_idx or not has_children(node)) {
+    if (node.mass == 0 or node.particle == p_idx) {
         Vec3 f;
         f.x = 0;
         f.y = 0;
@@ -377,6 +381,10 @@ Vec3 acceleration(int node_idx, int p_idx) {
     f.z = 0;
 
     for (int i = 0; i < 8; i++) {
+        if (node.children[i] == -1) {
+            continue;
+        }
+
         f += acceleration(node.children[i], p_idx);
     }
 
