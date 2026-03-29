@@ -167,6 +167,8 @@ int get_octant(Node& node, int p_idx) {
 
 // This is the least clean code I've written in a while, please don't judge
 void create_children(Node& node) {
+    cerr << "create children called\n";
+    
     Node child_0, child_1, child_2, child_3, child_4, child_5, child_6, child_7;
 
     child_0.center = node.center;
@@ -303,9 +305,15 @@ void insert(int node_idx, int p_idx) {
 
     create_children(node);
 
+    cerr << "children created\n";
+
     insert(node_idx, old_p_idx); // Insert old particle
 
+    cerr << "old particle inserted\n";
+
     insert(node_idx, p_idx); // Insert new particle
+
+    cerr << "new particle inserted\n";
 }
 
 
@@ -456,7 +464,7 @@ py::array_t<double> compute_accelerations(py::array_t<double> positions, py::arr
     for (int i = 0; i < particles.size(); i++) {
         insert(0, i); // Insert particle into root node
 
-        cerr << "insertion" << i << "ran successfully\n";
+        cerr << "insertion " << i << " ran successfully\n";
     }
 
     cerr << "tree built\n";
