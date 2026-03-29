@@ -431,3 +431,10 @@ Vec3 acceleration(int node_idx, int p_idx) {
 
     return f;
 }
+
+
+// Actually makes this a valid Python module
+PYBIND11_MODULE(barnes_hut, m) {
+    m.def("compute_accelerations", &compute_accelerations,
+          "Compute accelerations using Barnes-Hut");
+}
