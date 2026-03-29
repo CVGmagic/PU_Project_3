@@ -53,7 +53,8 @@ double G = 6.6743e-11; // Gravitational constant
 
 vector<Vec3> numpy_to_vec_vec3(py::array_t<double> positions) {
     // Converts the numpy array to vec3 for cleaner code
-    auto buf = positions.request(); // Stores a buffer object, which basically contains all information about the array
+    auto positions_contig = py::array_t<double, py::array::c_style | py::array::forcecast>(positions);
+    auto buf = positions_contig.request(); // Stores a buffer object, which basically contains all information about the array
     
     if (buf.ndim != 2 or buf.shape[1] != 3) {
         throw runtime_error("positions must have shape (N,3)");
@@ -78,7 +79,8 @@ vector<Vec3> numpy_to_vec_vec3(py::array_t<double> positions) {
 
 vector<double> numpy_to_vec(py::array_t<double> masses) {
     // Converts the numpy array to vec3 for cleaner code
-    auto buf = masses.request(); // Stores a buffer object, which basically contains all information about the array
+    auto masses_contig = py::array_t<double, py::array::c_style | py::array::forcecast>(masses);
+    auto buf = masses_contig.request(); // Stores a buffer object, which basically contains all information about the array
     
     if (buf.ndim != 1) {
         throw runtime_error("masses must have shape (N)");
@@ -325,7 +327,7 @@ void set_mass_and_com(int node_idx) {
         if (node.children[i] == -1) {
             continue;
         }
-        
+
         set_mass_and_com(node.children[i]); // Update children first
 
         Node& child = nodes[node.children[i]];
