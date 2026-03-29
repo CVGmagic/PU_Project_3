@@ -166,9 +166,11 @@ int get_octant(Node& node, int p_idx) {
 
 
 // This is the least clean code I've written in a while, please don't judge
-void create_children(Node& node) {
-    cerr << "create children called\n";
+void create_children(int node_idx) {
+    cerr << "create children called with node_idx" << node_idx << "\n";
     
+    Node& node = nodes[node_idx];
+
     Node child_0, child_1, child_2, child_3, child_4, child_5, child_6, child_7;
 
     child_0.center = node.center;
@@ -279,9 +281,9 @@ void insert(int node_idx, int p_idx) {
 
     cerr << "children:\n";
     for (int i = 0; i < 8; i++) {
-        cerr << node.children[i] << "\n";
+        cerr << node.children[i] << " ";
     }
-    cerr << "\n";
+    cerr << "\n\n";
 
     // Empty leaf
     if (node.particle == -1 and not has_children(node)) {
@@ -311,7 +313,7 @@ void insert(int node_idx, int p_idx) {
     int old_p_idx = node.particle;
     node.particle = -1; 
 
-    create_children(node);
+    create_children(node_idx);
 
     cerr << "children created\n";
 
