@@ -89,16 +89,17 @@ def calculate_separate_potential_energies(r, m):
 
 
 def update_conditions(): #  'event' is needed with the timer which later allows the command timer.stop()
-    global r, v, m, dt
+    global r, v, m, dt, energy_relation
 
     sum_acc_gravity, sum_acc_pressure = calculate_separate_potential_energies(r, m)
 
     energy_relation = sum_acc_gravity / sum_acc_pressure
 
-    a = calculate_complete_acceleration(r, m)
+    a = calculate_complete_acceleration(r, m, energy_relation)
     v = a * dt
 
     return
+
 
 def update_starting_position(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with wrong gravity
@@ -125,11 +126,11 @@ def update_starting_position(event): #  'event' is needed with the timer which l
 
 def update_simulation(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with correct gravity
-    global r, v, m, dt
+    global r, v, m, dt, energy_relation
 
     r += v * dt
 
-    a = calculate_complete_acceleration(r, m)
+    a = calculate_complete_acceleration(r, m, energy_relation)
 
     v += a * dt
 

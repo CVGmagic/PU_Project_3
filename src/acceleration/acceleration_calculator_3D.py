@@ -47,7 +47,7 @@ def calc_acc_rep_np(r, m):
     return a
 
 
-def calculate_gravitational_acceleration(r, m):
+def calculate_complete_acceleration(r, m, en_rel):
     """
     Calculates an attractive acceleration between points.
     Has epsilon, but no short distance repulsion.
@@ -56,8 +56,8 @@ def calculate_gravitational_acceleration(r, m):
     dist_sq = np.sum(diff * diff, axis=-1) + eps_sq  # stores 1D distance between evry two-point combination squared
     np.fill_diagonal(dist_sq, np.inf)  # changes distance of two-point combination of same points to inf
 
-    inv_dist_3 = 1 / ((dist_sq + eps_sq) * np.sqrt(dist_sq + eps_sq))
-    inv_dist_8 = 1 / dist_sq**4
+    inv_dist_3 = 1 / (dist_sq * np.sqrt(dist_sq))
+    inv_dist_8 = -en_rel / dist_sq**4
 
     a = -np.sum(diff * (inv_dist_3[:, :, None] - inv_dist_8[:, :, None]) * m[None, :, None], axis = 1)
     return a
