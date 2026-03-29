@@ -132,6 +132,7 @@ int get_octant(Node& node, int p_idx) {
 
     Vec3 rel_cords = particle - node.center; // Moves coordinate system to node center
 
+    // Top octants
     if (rel_cords.x >= 0 and rel_cords.y >= 0 and rel_cords.z >= 0) { // (0, 0, 0) is in Octant 0
         return 0;
     }
@@ -278,6 +279,11 @@ void insert(int node_idx, int p_idx) {
     // Internal node
     if (has_children(node)) { 
         int oct = get_octant(node, p_idx);
+        
+        if (oct == -1) {
+            throw runtime_error("Octant -1 encountered");
+        }
+
         insert(node.children[oct], p_idx); // Insert node into correct child
         return;
     }
@@ -310,6 +316,11 @@ void set_mass_and_com(int node_idx) {
     node.com.y = 0;
     node.com.z = 0;
 
+    // If it's an empty leaf, skip the rest
+    if (not has_children(node)) {
+        return;
+    }
+
     for (int i = 0; i < 8; i++) {
         set_mass_and_com(node.children[i]); // Update children first
 
@@ -341,7 +352,7 @@ Vec3 acceleration(int node_idx, int p_idx) {
     Node& node = nodes[node_idx];
 
     // No mass or same particle
-    if (node.mass == 0 or node.particle == p_idx) {
+    if (node.mass == 0 or node.particle == p_idx or not has_children(node)) {
         Vec3 f;
         f.x = 0;
         f.y = 0;
