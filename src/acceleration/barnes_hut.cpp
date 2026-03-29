@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cfloat>
 #include <stdexcept>
+#include <iostream>
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 using namespace std;
@@ -398,7 +399,12 @@ Vec3 acceleration(int node_idx, int p_idx) {
 py::array_t<double> compute_accelerations(py::array_t<double> positions, py::array_t<double> masses) {
 
     particles = numpy_to_vec_vec3(positions); // Get particles as vector<Vec3>
+    
+    cerr << "numpy_to_vec_vec3 ran\n";
+
     m = numpy_to_vec(masses); // Assign masses to a global variable
+
+    cerr << "numpy_to_vec ran\n";
 
     double lower_x = DBL_MAX;
     double lower_y = DBL_MAX;
@@ -438,21 +444,31 @@ py::array_t<double> compute_accelerations(py::array_t<double> positions, py::arr
     nodes.clear(); // Clear from previous timestep
     nodes.push_back(root);
 
+    cerr << "root initialized\n";
+
     // Build tree
     for (int i = 0; i < particles.size(); i++) {
         insert(0, i); // Insert particle into root node
     }
 
+    cerr << "tree built\n";
+
     // Set masses coms
     set_mass_and_com(0);
+
+    cerr << "masses set\n";
 
     // Compute acceleration for each particle
     vector<Vec3> accelerations(particles.size());
     for (int i = 0; i < particles.size(); i++) {
         accelerations[i] = acceleration(0, i);
+
+        cerr << "acceleration" << i <<" was set successfully\n";
     }
 
     py::array_t<double> res = vec3_to_numpy(accelerations);
+
+    cerr << "result converted to numpy successfully\n";
 
     return res;
 }
