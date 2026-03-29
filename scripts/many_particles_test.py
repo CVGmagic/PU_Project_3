@@ -1,5 +1,5 @@
 from vispy import scene, app
-from acceleration.acceleration_calculator_3D import calculate_attractive_acceleration
+from acceleration.acceleration_calculator_3D import calculate_gravitational_acceleration
 import numpy as np
 from renderers import renderer_3D
 from simulation.energy_calculator import get_total_energy
