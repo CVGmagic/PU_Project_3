@@ -9,6 +9,10 @@ using namespace std;
 namespace py = pybind11;
 
 
+// When rebuilding, use the following commands in x64 native ...
+// cd C:\Users\cvgma\VSCodeProjects\SOI\PU_Project_3\src\acceleration
+// py setup.py build_ext --inplace
+
 
 struct Vec3 { // My own vector class, to make calculations cleaner
     double x, y, z;
@@ -45,70 +49,6 @@ double eps = 0.01; // Prevents infinite forces
 double eps_sq = eps * eps;
 double theta = 0.4; // Opening angle, controlls aggressiveness of pruning
 double G = 6.6743e-11; // Gravitational constant
-
-
-// Gets the numpy array from python and returns the result. This function is what actually gets called by Python
-py::array_t<double> compute_accelerations(py::array_t<double> positions, py::array_t<double> masses) {
-
-    particles = numpy_to_vec_vec3(positions); // Get particles as vector<Vec3>
-    m = numpy_to_vec(masses); // Assign masses to a global variable
-
-    double lower_x = DBL_MAX;
-    double lower_y = DBL_MAX;
-    double lower_z = DBL_MAX;
-
-    double upper_x = -DBL_MAX;
-    double upper_y = -DBL_MAX;
-    double upper_z = -DBL_MAX;
-
-    for (Vec3& p : particles) {
-        lower_x = min(lower_x, p.x);
-        lower_y = min(lower_y, p.y);
-        lower_z = min(lower_z, p.z);
-
-        upper_x = max(upper_x, p.x);
-        upper_y = max(upper_y, p.y);
-        upper_z = max(upper_z, p.z);
-    }
-
-   
-    Vec3 root_center; // Center of the root node
-    root_center.x = (lower_x + upper_x) / 2;
-    root_center.y = (lower_y + upper_y) / 2;
-    root_center.z = (lower_z + upper_z) / 2;
-
-    double size_x = upper_x - lower_x;
-    double size_y = upper_y - lower_y;
-    double size_z = upper_z - lower_z;
-
-    // Initialize root node
-    Node root;
-    root.center = root_center;
-    root.half_size = max({size_x, size_y, size_z}) / 2;
-    root.particle = -1;
-    fill(begin(root.children), end(root.children), -1);
-
-    nodes.clear(); // Clear from previous timestep
-    nodes.push_back(root);
-
-    // Build tree
-    for (int i = 0; i < particles.size(); i++) {
-        insert(0, i); // Insert particle into root node
-    }
-
-    // Set masses coms
-    set_mass_and_com(0);
-
-    // Compute acceleration for each particle
-    vector<Vec3> accelerations(particles.size());
-    for (int i = 0; i < particles.size(); i++) {
-        accelerations[i] = acceleration(0, i);
-    }
-
-    py::array_t<double> res = vec3_to_numpy(accelerations);
-
-    return res;
-}
 
 
 vector<Vec3> numpy_to_vec_vec3(py::array_t<double> positions) {
@@ -433,8 +373,72 @@ Vec3 acceleration(int node_idx, int p_idx) {
 }
 
 
+// Gets the numpy array from python and returns the result. This function is what actually gets called by Python
+py::array_t<double> compute_accelerations(py::array_t<double> positions, py::array_t<double> masses) {
+
+    particles = numpy_to_vec_vec3(positions); // Get particles as vector<Vec3>
+    m = numpy_to_vec(masses); // Assign masses to a global variable
+
+    double lower_x = DBL_MAX;
+    double lower_y = DBL_MAX;
+    double lower_z = DBL_MAX;
+
+    double upper_x = -DBL_MAX;
+    double upper_y = -DBL_MAX;
+    double upper_z = -DBL_MAX;
+
+    for (Vec3& p : particles) {
+        lower_x = min(lower_x, p.x);
+        lower_y = min(lower_y, p.y);
+        lower_z = min(lower_z, p.z);
+
+        upper_x = max(upper_x, p.x);
+        upper_y = max(upper_y, p.y);
+        upper_z = max(upper_z, p.z);
+    }
+
+   
+    Vec3 root_center; // Center of the root node
+    root_center.x = (lower_x + upper_x) / 2;
+    root_center.y = (lower_y + upper_y) / 2;
+    root_center.z = (lower_z + upper_z) / 2;
+
+    double size_x = upper_x - lower_x;
+    double size_y = upper_y - lower_y;
+    double size_z = upper_z - lower_z;
+
+    // Initialize root node
+    Node root;
+    root.center = root_center;
+    root.half_size = max({size_x, size_y, size_z}) / 2;
+    root.particle = -1;
+    fill(begin(root.children), end(root.children), -1);
+
+    nodes.clear(); // Clear from previous timestep
+    nodes.push_back(root);
+
+    // Build tree
+    for (int i = 0; i < particles.size(); i++) {
+        insert(0, i); // Insert particle into root node
+    }
+
+    // Set masses coms
+    set_mass_and_com(0);
+
+    // Compute acceleration for each particle
+    vector<Vec3> accelerations(particles.size());
+    for (int i = 0; i < particles.size(); i++) {
+        accelerations[i] = acceleration(0, i);
+    }
+
+    py::array_t<double> res = vec3_to_numpy(accelerations);
+
+    return res;
+}
+
+
 // Actually makes this a valid Python module
-PYBIND11_MODULE(barnes_hut, m) {
-    m.def("compute_accelerations", &compute_accelerations,
+PYBIND11_MODULE(barnes_hut, module_object) {
+    module_object.def("compute_accelerations", &compute_accelerations,
           "Compute accelerations using Barnes-Hut");
 }
