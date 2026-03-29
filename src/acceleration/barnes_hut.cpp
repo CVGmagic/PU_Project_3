@@ -270,6 +270,8 @@ void create_children(Node& node) {
 
 
 void insert(int node_idx, int p_idx) {
+    cerr << "insert called\n";
+
     // Insert particle p_idx into node node_idx
     Node& node = nodes[node_idx]; // Only store reference, avoid copying
 
@@ -283,18 +285,17 @@ void insert(int node_idx, int p_idx) {
     if (has_children(node)) { 
         int oct = get_octant(node, p_idx);
         
-        if (oct == -1) {
-            throw runtime_error("Octant -1 encountered");
+        if (oct == -1 or oct > 7) {
+            throw runtime_error("Invalid octant encountered");
         }
 
         insert(node.children[oct], p_idx); // Insert node into correct child
         return;
     }
 
-    // Leaf with particle
-    
+    // Leaf with particle               
     int old_p_idx = node.particle;
-    node.particle = -1;
+    node.particle = -1; 
 
     create_children(node);
 
@@ -449,6 +450,8 @@ py::array_t<double> compute_accelerations(py::array_t<double> positions, py::arr
     // Build tree
     for (int i = 0; i < particles.size(); i++) {
         insert(0, i); // Insert particle into root node
+
+        cerr << "insertion" << i << "ran successfully\n";
     }
 
     cerr << "tree built\n";
