@@ -169,7 +169,7 @@ int get_octant(Node& node, int p_idx) {
 void create_children(int node_idx) {
     cerr << "create children called with node_idx " << node_idx << "\n";
     
-    // So vector reallocation doesn't break the logic
+    // So vector reallocation doesn't break it
     nodes.reserve(nodes.size() + 8);
 
     Node& node = nodes[node_idx];
@@ -505,6 +505,9 @@ py::array_t<double> compute_accelerations(py::array_t<double> positions, py::arr
 
 // Actually makes this a valid Python module
 PYBIND11_MODULE(barnes_hut, module_object) {
+    // Disable cerr
+    std::cerr.setstate(std::ios_base::failbit);
+    
     module_object.def("compute_accelerations", &compute_accelerations,
           "Compute accelerations using Barnes-Hut");
 }
