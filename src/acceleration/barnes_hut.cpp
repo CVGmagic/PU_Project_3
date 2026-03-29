@@ -63,7 +63,7 @@ vector<Vec3> numpy_to_vec_vec3(py::array_t<double> positions) {
 
     int N = buf.shape[0];
     // ptr is a pointer to the first element in the array. This allows us to do pointer arithmetic
-    double* ptr = static_cast<double*>(buf.ptr); 
+    double* ptr = static_cast<double*>(buf.ptr);
 
     vector<Vec3> result(N);
     for (int i = 0; i < N; i++) {
@@ -276,13 +276,17 @@ void insert(int node_idx, int p_idx) {
     Node& node = nodes[node_idx]; // Only store reference, avoid copying
 
     // Empty leaf
-    if (node.particle == -1 and not has_children(node)) { 
+    if (node.particle == -1 and not has_children(node)) {
+        cerr << "empty leaf\n";
+
         node.particle = p_idx;
         return;
     }
 
     // Internal node
     if (has_children(node)) { 
+        cerr << "internal node\n";
+
         int oct = get_octant(node, p_idx);
         
         if (oct == -1 or oct > 7) {
@@ -293,7 +297,9 @@ void insert(int node_idx, int p_idx) {
         return;
     }
 
-    // Leaf with particle               
+    // Leaf with particle
+    cerr << "leaf with particle\n";
+
     int old_p_idx = node.particle;
     node.particle = -1; 
 
