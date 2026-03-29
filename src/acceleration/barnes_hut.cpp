@@ -30,7 +30,6 @@ struct Vec3 { // My own vector class, to make calculations cleaner
 };
 
 
-
 struct Node { // Node class to cleanly group data
     double mass;
     Vec3 com; // center of mass
@@ -40,7 +39,6 @@ struct Node { // Node class to cleanly group data
     int children[8]; // Array of int with size 8 (indices of the 8 children)
     int particle; // Index of the particle, -1 if it's not a leaf
 };
-
 
 
 vector<Node> nodes; // Stores all the nodes. Root is at 0
@@ -404,11 +402,12 @@ Vec3 acceleration(int node_idx, int p_idx) {
 
 // Gets the numpy array from python and returns the result. This function is what actually gets called by Python
 py::array_t<double> compute_accelerations(py::array_t<double> positions, py::array_t<double> masses) {
-
+    particles.clear();
     particles = numpy_to_vec_vec3(positions); // Get particles as vector<Vec3>
     
     cerr << "numpy_to_vec_vec3 ran\n";
 
+    m.clear();
     m = numpy_to_vec(masses); // Assign masses to a global variable
 
     cerr << "numpy_to_vec ran\n";
