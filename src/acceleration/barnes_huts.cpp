@@ -44,10 +44,10 @@ vector<double> m; // Stores masses
 double eps = 0.01; // Prevents infinite forces
 double eps_sq = eps * eps;
 double theta = 0.4; // Opening angle, controlls aggressiveness of pruning
-double G = 1; // PLACEHOLDER # TODO
+double G = 6.6743e-11; // Gravitational constant
 
 
-// Gets the numpy array from python and returns the result. This function is what actually gets called by python
+// Gets the numpy array from python and returns the result. This function is what actually gets called by Python
 py::array_t<double> compute_accelerations(py::array_t<double> positions, py::array_t<double> masses) {
 
     particles = numpy_to_vec_vec3(positions); // Get particles as vector<Vec3>
@@ -358,7 +358,7 @@ void insert(int node_idx, int p_idx) {
 void set_mass_and_com(int node_idx) {
     Node& node = nodes[node_idx];
 
-    if (node.particle != -1) { // leaf
+    if (node.particle != -1) { // leaf with particle
         node.mass = m[node.particle];
         node.com = particles[node.particle];
         return;
@@ -378,7 +378,9 @@ void set_mass_and_com(int node_idx) {
         node.com += child.com * child.mass; // Shift center of gravity
     }
 
-    node.com /= node.mass; // Fix the scaling caused by the mass (basically a weighted average)
+    if (node.mass != 0) { // Prevent division by 0 for empty nodes
+        node.com /= node.mass; // Fix the scaling caused by the mass (basically a weighted average)
+    }
 }
 
 
