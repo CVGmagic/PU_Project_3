@@ -1,6 +1,7 @@
 import numpy as np
 import math
 from simulation.constants import G, eps_sq
+
 """
 sigma = 0.5   # The 'size' of your particles.
 epsilon = 0.1 # The 'strength' of the bounce.
