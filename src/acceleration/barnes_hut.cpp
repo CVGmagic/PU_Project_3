@@ -270,7 +270,7 @@ void create_children(Node& node) {
 
 
 void insert(int node_idx, int p_idx) {
-    cerr << "insert called\n";
+    cerr << "insert called with node_idx " << node_idx << " p_idx " << p_idx << "\n";
 
     // Insert particle p_idx into node node_idx
     Node& node = nodes[node_idx]; // Only store reference, avoid copying
