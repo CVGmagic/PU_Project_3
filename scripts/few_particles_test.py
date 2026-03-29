@@ -1,6 +1,5 @@
-from PycharmProjects.Flavio_Beispielprojekt.main import compute_accelerations
 from vispy import scene, app
-from acceleration.acceleration_calculator_3D import calculate_attractive_acceleration
+from acceleration.acceleration_calculator_3D import calculate_gravitational_acceleration
 import numpy as np
 from renderers import renderer_3D
 from simulation.energy_calculator import get_total_energy
@@ -26,7 +25,7 @@ dt = 0.01
 v = np.zeros((r.shape[0], 3))
 v[1] = [0, 14, 0]
 v[2] = [0, 14, 0]
-a = compute_accelerations(r, m)
+a = barnes_hut.compute_accelerations(r, m)
 v += a * dt / 2
 
 def update(event):
@@ -38,7 +37,7 @@ def update(event):
     dist = r[0] - r[1]
     print(get_total_energy(r, m, v))
 
-    a = calculate_gravitational_acceleration(r, m)
+    a = barnes_hut.compute_accelerations(r, m)
 
     v += a * dt
 
