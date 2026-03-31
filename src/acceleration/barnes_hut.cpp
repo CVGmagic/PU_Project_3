@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cfloat>
 #include <stdexcept>
+#include <iostream>
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 using namespace std;
@@ -29,7 +30,6 @@ struct Vec3 { // My own vector class, to make calculations cleaner
 };
 
 
-
 struct Node { // Node class to cleanly group data
     double mass;
     Vec3 com; // center of mass
@@ -39,7 +39,6 @@ struct Node { // Node class to cleanly group data
     int children[8]; // Array of int with size 8 (indices of the 8 children)
     int particle; // Index of the particle, -1 if it's not a leaf
 };
-
 
 
 vector<Node> nodes; // Stores all the nodes. Root is at 0
@@ -53,7 +52,8 @@ double G = 6.6743e-11; // Gravitational constant
 
 vector<Vec3> numpy_to_vec_vec3(py::array_t<double> positions) {
     // Converts the numpy array to vec3 for cleaner code
-    auto buf = positions.request(); // Stores a buffer object, which basically contains all information about the array
+    auto positions_contig = py::array_t<double, py::array::c_style | py::array::forcecast>(positions);
+    auto buf = positions_contig.request(); // Stores a buffer object, which basically contains all information about the array
     
     if (buf.ndim != 2 or buf.shape[1] != 3) {
         throw runtime_error("positions must have shape (N,3)");
@@ -61,7 +61,7 @@ vector<Vec3> numpy_to_vec_vec3(py::array_t<double> positions) {
 
     int N = buf.shape[0];
     // ptr is a pointer to the first element in the array. This allows us to do pointer arithmetic
-    double* ptr = static_cast<double*>(buf.ptr); 
+    double* ptr = static_cast<double*>(buf.ptr);
 
     vector<Vec3> result(N);
     for (int i = 0; i < N; i++) {
@@ -78,7 +78,8 @@ vector<Vec3> numpy_to_vec_vec3(py::array_t<double> positions) {
 
 vector<double> numpy_to_vec(py::array_t<double> masses) {
     // Converts the numpy array to vec3 for cleaner code
-    auto buf = masses.request(); // Stores a buffer object, which basically contains all information about the array
+    auto masses_contig = py::array_t<double, py::array::c_style | py::array::forcecast>(masses);
+    auto buf = masses_contig.request(); // Stores a buffer object, which basically contains all information about the array
     
     if (buf.ndim != 1) {
         throw runtime_error("masses must have shape (N)");
@@ -132,6 +133,7 @@ int get_octant(Node& node, int p_idx) {
 
     Vec3 rel_cords = particle - node.center; // Moves coordinate system to node center
 
+    // Top octants
     if (rel_cords.x >= 0 and rel_cords.y >= 0 and rel_cords.z >= 0) { // (0, 0, 0) is in Octant 0
         return 0;
     }
@@ -164,7 +166,14 @@ int get_octant(Node& node, int p_idx) {
 
 
 // This is the least clean code I've written in a while, please don't judge
-void create_children(Node& node) {
+void create_children(int node_idx) {
+    cerr << "create children called with node_idx " << node_idx << "\n";
+    
+    // So vector reallocation doesn't break it
+    nodes.reserve(nodes.size() + 8);
+
+    Node& node = nodes[node_idx];
+
     Node child_0, child_1, child_2, child_3, child_4, child_5, child_6, child_7;
 
     child_0.center = node.center;
@@ -266,32 +275,58 @@ void create_children(Node& node) {
 
 
 void insert(int node_idx, int p_idx) {
+    cerr << "insert called with node_idx " << node_idx << " p_idx " << p_idx << "\n";
+
     // Insert particle p_idx into node node_idx
     Node& node = nodes[node_idx]; // Only store reference, avoid copying
 
+    cerr << "node.particle = " << node.particle  << "\n";
+
+    cerr << "children:\n";
+    for (int i = 0; i < 8; i++) {
+        cerr << node.children[i] << " ";
+    }
+    cerr << "\n\n";
+
     // Empty leaf
-    if (node.particle == -1 and not has_children(node)) { 
+    if (node.particle == -1 and not has_children(node)) {
+        cerr << "empty leaf\n";
+
         node.particle = p_idx;
         return;
     }
 
     // Internal node
     if (has_children(node)) { 
+        cerr << "internal node\n";
+
         int oct = get_octant(node, p_idx);
+        
+        if (oct == -1 or oct > 7) {
+            throw runtime_error("Invalid octant encountered");
+        }
+
         insert(node.children[oct], p_idx); // Insert node into correct child
         return;
     }
 
     // Leaf with particle
-    
-    int old_p_idx = node.particle;
-    node.particle = -1;
+    cerr << "leaf with particle\n";
 
-    create_children(node);
+    int old_p_idx = node.particle;
+    node.particle = -1; 
+
+    create_children(node_idx);
+
+    cerr << "children created\n";
 
     insert(node_idx, old_p_idx); // Insert old particle
 
+    cerr << "old particle inserted\n";
+
     insert(node_idx, p_idx); // Insert new particle
+
+    cerr << "new particle inserted\n";
 }
 
 
@@ -310,7 +345,16 @@ void set_mass_and_com(int node_idx) {
     node.com.y = 0;
     node.com.z = 0;
 
+    // If it's an empty leaf, skip the rest
+    if (not has_children(node)) {
+        return;
+    }
+
     for (int i = 0; i < 8; i++) {
+        if (node.children[i] == -1) {
+            continue;
+        }
+
         set_mass_and_com(node.children[i]); // Update children first
 
         Node& child = nodes[node.children[i]];
@@ -366,6 +410,10 @@ Vec3 acceleration(int node_idx, int p_idx) {
     f.z = 0;
 
     for (int i = 0; i < 8; i++) {
+        if (node.children[i] == -1) {
+            continue;
+        }
+
         f += acceleration(node.children[i], p_idx);
     }
 
@@ -375,9 +423,15 @@ Vec3 acceleration(int node_idx, int p_idx) {
 
 // Gets the numpy array from python and returns the result. This function is what actually gets called by Python
 py::array_t<double> compute_accelerations(py::array_t<double> positions, py::array_t<double> masses) {
-
+    particles.clear();
     particles = numpy_to_vec_vec3(positions); // Get particles as vector<Vec3>
+    
+    cerr << "numpy_to_vec_vec3 ran\n";
+
+    m.clear();
     m = numpy_to_vec(masses); // Assign masses to a global variable
+
+    cerr << "numpy_to_vec ran\n";
 
     double lower_x = DBL_MAX;
     double lower_y = DBL_MAX;
@@ -417,21 +471,33 @@ py::array_t<double> compute_accelerations(py::array_t<double> positions, py::arr
     nodes.clear(); // Clear from previous timestep
     nodes.push_back(root);
 
+    cerr << "root initialized\n";
+
     // Build tree
     for (int i = 0; i < particles.size(); i++) {
         insert(0, i); // Insert particle into root node
+
+        cerr << "insertion " << i << " ran successfully\n";
     }
+
+    cerr << "tree built\n";
 
     // Set masses coms
     set_mass_and_com(0);
+
+    cerr << "masses set\n";
 
     // Compute acceleration for each particle
     vector<Vec3> accelerations(particles.size());
     for (int i = 0; i < particles.size(); i++) {
         accelerations[i] = acceleration(0, i);
+
+        cerr << "acceleration" << i <<" was set successfully\n";
     }
 
     py::array_t<double> res = vec3_to_numpy(accelerations);
+
+    cerr << "result converted to numpy successfully\n";
 
     return res;
 }
@@ -439,6 +505,9 @@ py::array_t<double> compute_accelerations(py::array_t<double> positions, py::arr
 
 // Actually makes this a valid Python module
 PYBIND11_MODULE(barnes_hut, module_object) {
+    // Disable cerr
+    std::cerr.setstate(std::ios_base::failbit);
+    
     module_object.def("compute_accelerations", &compute_accelerations,
           "Compute accelerations using Barnes-Hut");
 }
