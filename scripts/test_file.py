@@ -2,7 +2,7 @@ from simulation import random_shape_creator_2D, random_shape_creator_3D, initial
 from renderers import renderer_2D, renderer_3D
 import numpy as np
 import matplotlib.pyplot as plt
-from acceleration.acceleration_calculator_3D import calc_acc_rep_np, calculate_complete_acceleration
+from acceleration.acceleration_calculator_3D import calc_acc_rep_np, calculate_gravitational_acceleration
 from simulation.constants import G, eps_sq
 from vispy import scene, app
 
@@ -63,7 +63,7 @@ step_count = 1
 max_steps = 100
 
 
-def calculate_separate_potential_energies(r, m):
+def calculate_potential_energies(r, m):
     """
     Calculates Gravity PE and Pressure PE in one pass.
     Returns: (gravity_potential_energy, pressure_potential_energy)
@@ -91,7 +91,7 @@ def calculate_separate_potential_energies(r, m):
 def update_conditions_rep(): #  'event' is needed with the timer which later allows the command timer.stop()
     global r, v, m, dt, energy_relation
 
-    sum_acc_gravity, sum_acc_pressure = calculate_separate_potential_energies(r, m)
+    sum_acc_gravity, sum_acc_pressure = calculate_potential_energies(r, m)
 
     energy_relation = sum_acc_gravity / sum_acc_pressure
 
@@ -104,11 +104,11 @@ def update_conditions_rep(): #  'event' is needed with the timer which later all
 def update_conditions(): #  'event' is needed with the timer which later allows the command timer.stop()
     global r, v, m, dt, energy_relation
 
-    sum_acc_gravity, sum_acc_pressure = calculate_separate_potential_energies(r, m)
+    sum_acc_gravity, sum_acc_pressure = calculate_potential_energies(r, m)
 
     energy_relation = sum_acc_gravity / sum_acc_pressure
 
-    a = calculate_complete_acceleration(r, m, energy_relation)
+    a = calculate_gravitational_acceleration(r, m, energy_relation)
     v = a * dt
 
 def update_starting_position(event): #  'event' is needed with the timer which later allows the command timer.stop()
@@ -143,7 +143,7 @@ def update_simulation(event): #  'event' is needed with the timer which later al
 
     r += v * dt
 
-    a = calculate_complete_acceleration(r, m, energy_relation)
+    a = calculate_gravitational_acceleration(r, m, energy_relation)
 
     v += a * dt
 
