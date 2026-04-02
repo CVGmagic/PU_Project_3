@@ -89,11 +89,7 @@ def calculate_potential_energies(r, m):
 
 
 def update_conditions_rep(): #  'event' is needed with the timer which later allows the command timer.stop()
-    global r, v, m, dt, energy_relation
-
-    sum_acc_gravity, sum_acc_pressure = calculate_potential_energies(r, m)
-
-    energy_relation = sum_acc_gravity / sum_acc_pressure
+    global r, v, m, dt
 
     a = calc_acc_rep_np(r, m)
     v = a * dt
@@ -115,11 +111,13 @@ def update_starting_position(event): #  'event' is needed with the timer which l
     # update positions every frame with wrong gravity
     global r, v, m, dt, max_steps, step_count
 
-    r += v * dt
-
     a = calc_acc_rep_np(r, m)
+    a += -0.5 * r # prevents the sphere from exploding
 
     v += a * dt
+    v *= 0.9 # adds damping
+
+    r += v * dt
 
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
@@ -127,12 +125,8 @@ def update_starting_position(event): #  'event' is needed with the timer which l
 
         update_conditions_rep()
 
-        if step_count % (2 * max_steps) == 0:
-
-            update_conditions()
-
-            timer1.stop()  # stop calling update
-            timer2.start()  # start new function
+        timer1.stop()  # stop calling update
+        timer2.start()  # start new function
 
 
     step_count += 1
