@@ -123,7 +123,7 @@ def update_starting_position(event): #  'event' is needed with the timer which l
 
     if step_count % max_steps == 0:
 
-        update_conditions_rep()
+        update_conditions()
 
         timer1.stop()  # stop calling update
         timer2.start()  # start new function
