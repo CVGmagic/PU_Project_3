@@ -43,7 +43,7 @@ view.camera = 'turntable' # you can change perspective in your scene
 
 # Particle data
 r = random_shape_creator_3D.create_sphere_3D(np.array([0, 0, 0]), 1, n) # creates the random points
-sizes = np.random.rand(n) * 30 # saves a list with n-elements which all have different sizes
+sizes = np.random.rand(n) * 20 # saves a list with n-elements which all have different sizes
 
 # Create markers (GPU points)
 scatter = scene.visuals.Markers() # an empty list (kinda)
