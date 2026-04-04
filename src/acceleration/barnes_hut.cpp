@@ -11,7 +11,7 @@ namespace py = pybind11;
 
 
 // When rebuilding, use the following commands in x64 native ...
-// cd C:\Users\cvgma\VSCodeProjects\SOI\PU_Project_3\src\acceleration
+// cd C:\Users\cvgma\VSCodeProjects\GitHub Projects\PU_Project_3\src\acceleration
 // py setup.py build_ext --inplace
 
 
@@ -123,8 +123,20 @@ py::array_t<double> vec3_to_numpy(vector<Vec3>& accelerations) {
 }
 
 
-bool has_children(Node& node) {
+bool has_children(const Node& node) {
     return node.children[0] != -1;
+}
+
+
+bool is_in_node(const Node& node, int p_idx) {
+    return (
+        node.center.x - node.half_size <= particles[p_idx].x and
+        node.center.x + node.half_size > particles[p_idx].x and
+        node.center.y - node.half_size <= particles[p_idx].y and
+        node.center.y + node.half_size > particles[p_idx].y and
+        node.center.z - node.half_size <= particles[p_idx].z and
+        node.center.z + node.half_size > particles[p_idx].z
+    );
 }
 
 
@@ -368,12 +380,12 @@ void set_mass_and_com(int node_idx) {
 }
 
 
-double norm(Vec3& vec) {
+double norm(const Vec3& vec) {
     return sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
 }
 
 
-double norm_sq(Vec3& vec) {
+double norm_sq(const Vec3& vec) {
     return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
 }
 
@@ -398,8 +410,8 @@ Vec3 acceleration(int node_idx, int p_idx) {
     double dist = sqrt(dist_sq + eps_sq);
     double inv_dist_cubed = 1 / ((dist_sq + eps_sq) * dist);
 
-    // Approximation is good enough
-    if (node.half_size / dist < theta) {
+    // Approximation is good enough and octant doesn't contain particle
+    if (node.half_size / dist < theta and not is_in_node(node, p_idx)) {
         return d * (G * node.mass * inv_dist_cubed);
     }
 
