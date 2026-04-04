@@ -2,7 +2,7 @@ from simulation import random_shape_creator_2D, random_shape_creator_3D, initial
 from renderers import renderer_2D, renderer_3D
 import numpy as np
 import matplotlib.pyplot as plt
-from acceleration.acceleration_calculator_3D import calc_acc_rep_np, calculate_complete_acceleration
+from acceleration.acceleration_calculator_3D import calc_acc_rep_np, calculate_gravitational_acceleration
 from simulation.constants import G, eps_sq
 from vispy import scene, app
 
@@ -42,8 +42,8 @@ view = canvas.central_widget.add_view() # adds a scene to window
 view.camera = 'turntable' # you can change perspective in your scene
 
 # Particle data
-r = random_shape_creator_3D.create_cuboid_3D(np.array([0, 0, 0]), np.array([1, 1, 1]), n) # creates the random points
-sizes = np.random.rand(n) * 10 # saves a list with n-elements which all have different sizes
+r = random_shape_creator_3D.create_sphere_3D(np.array([0, 0, 0]), 1, n) # creates the random points
+sizes = np.random.rand(n) * 30 # saves a list with n-elements which all have different sizes
 
 # Create markers (GPU points)
 scatter = scene.visuals.Markers() # an empty list (kinda)
@@ -52,7 +52,7 @@ view.add(scatter) # adds scatter (basically points) to view
 
 """ add n -> n+1 and add line 57 when we add the sum but also add the coordinate of the sun that it works
 len(m) == len(r)"""
-dt = 0.0001
+dt = 0.00005
 m = np.full(n, 100) # creates array with n elements and (masses of 100)
 v = np.zeros((n, 3)) # v has n elements in 3D filled with 0's
 a = calc_acc_rep_np(r, m) # calculates the acceleration of every single r based on their location (r)
@@ -63,7 +63,7 @@ step_count = 1
 max_steps = 100
 
 
-def calculate_separate_potential_energies(r, m):
+def calculate_potential_energies(r, m):
     """
     Calculates Gravity PE and Pressure PE in one pass.
     Returns: (gravity_potential_energy, pressure_potential_energy)
@@ -88,39 +88,46 @@ def calculate_separate_potential_energies(r, m):
     return gravity_potential_energy, pressure_potential_energy
 
 
-def update_conditions(): #  'event' is needed with the timer which later allows the command timer.stop()
-    global r, v, m, dt, energy_relation
+def update_conditions_rep(): #  'event' is needed with the timer which later allows the command timer.stop()
+    global r, v, m, dt
 
-    sum_acc_gravity, sum_acc_pressure = calculate_separate_potential_energies(r, m)
-
-    energy_relation = sum_acc_gravity / sum_acc_pressure
-
-    a = calculate_complete_acceleration(r, m, energy_relation)
+    a = calc_acc_rep_np(r, m)
     v = a * dt
 
     return
 
 
+def update_conditions(): #  'event' is needed with the timer which later allows the command timer.stop()
+    global r, v, m, dt, energy_relation
+
+    sum_acc_gravity, sum_acc_pressure = calculate_potential_energies(r, m)
+
+    energy_relation = sum_acc_gravity / sum_acc_pressure
+
+    a = calculate_gravitational_acceleration(r, m, energy_relation)
+    v = a * dt
+
 def update_starting_position(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with wrong gravity
     global r, v, m, dt, max_steps, step_count
 
-    r += v * dt
-
     a = calc_acc_rep_np(r, m)
+    a += -0.5 * r # prevents the sphere from exploding
 
     v += a * dt
+    v *= 0.9 # adds damping
+
+    r += v * dt
 
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
     if step_count % max_steps == 0:
 
-        update_conditions()
+        update_conditions_rep()
 
         timer1.stop()  # stop calling update
         timer2.start()  # start new function
 
-        return
 
     step_count += 1
 
@@ -130,7 +137,7 @@ def update_simulation(event): #  'event' is needed with the timer which later al
 
     r += v * dt
 
-    a = calculate_complete_acceleration(r, m, energy_relation)
+    a = calculate_gravitational_acceleration(r, m, energy_relation)
 
     v += a * dt
 

@@ -44,7 +44,7 @@ struct Node { // Node class to cleanly group data
 vector<Node> nodes; // Stores all the nodes. Root is at 0
 vector<Vec3> particles; // Stores all the particles
 vector<double> m; // Stores masses
-double eps = 0.01; // Prevents infinite forces
+double eps = 0.001; // Prevents infinite forces
 double eps_sq = eps * eps;
 double theta = 0.4; // Opening angle, controlls aggressiveness of pruning
 double G = 6.6743e-11; // Gravitational constant
