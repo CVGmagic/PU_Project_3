@@ -177,9 +177,11 @@ int get_octant(Node& node, int p_idx) {
 // This is the least clean code I've written in a while, please don't judge
 void create_children(int node_idx) {
     cerr << "create children called with node_idx " << node_idx << "\n";
-    
-    // So vector reallocation doesn't break it
+    // Caius needs this to debug but it does nothing
+
     nodes.reserve(nodes.size() + 8);
+    /*the vector becomes much longer so it gets relocated -> pointers won't cause any troubles
+    because the relocation is done before the scaling */
 
     Node& node = nodes[node_idx];
 
