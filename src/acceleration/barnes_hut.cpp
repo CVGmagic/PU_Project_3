@@ -171,9 +171,6 @@ int get_octant(Node& node, int p_idx) {
     if (rel_cords.x >= 0 and rel_cords.y < 0 and rel_cords.z < 0) {
         return 7;
     }
-
-    // If for some reson no octant gets selected
-    return -1; // Will definitely lead to an error (intentionally)
 }
 
 
