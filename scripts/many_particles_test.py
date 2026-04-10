@@ -29,7 +29,7 @@ view.camera.set_range()
 dt = 0.01
 v = np.zeros((r.shape[0], 3))
 v[1:] = [0, 50, 0]
-a = calculate_attractive_acceleration(r, m)
+a = calculate_gravitational_acceleration(r, m)
 v += a * dt / 2
 
 def update(event):
@@ -39,9 +39,8 @@ def update(event):
 
     """ Print distance for debugging"""
     dist = r[0] - r[1]
-    print(get_total_energy(r, m, v))
 
-    a = calculate_attractive_acceleration(r, m)
+    a = calculate_gravitational_acceleration(r, m)
 
     v += a * dt
 

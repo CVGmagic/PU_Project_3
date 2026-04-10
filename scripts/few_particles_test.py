@@ -5,26 +5,24 @@ from renderers import renderer_3D
 from simulation.energy_calculator import get_total_energy
 from acceleration import barnes_hut
 
-
 canvas = scene.SceneCanvas(keys='interactive', show=True)
 view = canvas.central_widget.add_view()
 view.camera = 'turntable'
 
 # Particle data
-r = np.array([[0, 0, 0], [5, 0, 0], [5.5, 0, 0]], dtype=float)
+r = np.array([[0, 0, 0], [5, 5, 0], [-3, 1, 0]], dtype=float)
 sizes = np.array([20, 10, 10])
-m = np.array([1000, 1, 1])
+m = np.array([1e3, 1, 1])
 
 # Create markers (GPU points)
 scatter = scene.visuals.Markers()
 renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 view.add(scatter)
 view.camera.set_range()
-
 dt = 0.01
 v = np.zeros((r.shape[0], 3))
-v[1] = [0, 14, 0]
-v[2] = [0, 14, 0]
+v[1] = [0, 0, 0]
+v[2] = [0, 0, 0]
 a = barnes_hut.compute_accelerations(r, m)
 v += a * dt / 2
 
@@ -33,15 +31,13 @@ def update(event):
     global r, v
     r += v * dt
 
-    """ Print distance for debugging"""
-    dist = r[0] - r[1]
-    print(get_total_energy(r, m, v))
-
     a = barnes_hut.compute_accelerations(r, m)
 
     v += a * dt
 
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
+
+    print(get_total_energy(r, m, v))
 
 
 timer = app.Timer(1e-32, connect=update, start=True)  # ~60 FPS
