@@ -122,12 +122,12 @@ py::array_t<double> vec3_to_numpy(vector<Vec3>& accelerations) {
     return result;
 }
 
-
+// function checks if has children return True, else return False
 bool has_children(const Node& node) {
     return node.children[0] != -1;
 }
 
-
+// function checks whether a particle is in a specific node (also bigger ones)
 bool is_in_node(const Node& node, int p_idx) {
     return (
         node.center.x - node.half_size <= particles[p_idx].x and
@@ -139,7 +139,7 @@ bool is_in_node(const Node& node, int p_idx) {
     );
 }
 
-
+// connects a particle with its correct octant
 int get_octant(Node& node, int p_idx) {
     Vec3& particle = particles[p_idx];
 

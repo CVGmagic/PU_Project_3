@@ -63,6 +63,7 @@ step_count = 1
 max_steps = 100
 
 
+
 def calculate_potential_energies(r, m):
     """
     Calculates Gravity PE and Pressure PE in one pass.
