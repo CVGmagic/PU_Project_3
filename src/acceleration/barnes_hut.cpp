@@ -174,7 +174,7 @@ int get_octant(Node& node, int p_idx) {
 }
 
 
-// This is the least clean code I've written in a while, please don't judge
+// This generates the child_nodes of a parent_node
 void create_children(int node_idx) {
     cerr << "create children called with node_idx " << node_idx << "\n";
     // Caius needs this to debug but it does nothing
@@ -187,15 +187,17 @@ void create_children(int node_idx) {
 
     Node child_0, child_1, child_2, child_3, child_4, child_5, child_6, child_7;
 
-    child_0.center = node.center;
-    child_0.half_size = node.half_size / 2;
+    child_0.center = node.center; // has the same position as parent_node
+    child_0.half_size = node.half_size / 2; // has the half_length_size of parent_node
+    // is set to have no children_nodes or particles in it
     child_0.particle = -1;
     fill(begin(child_0.children), end(child_0.children), -1);
+    // adapts position of node
     child_0.center.x += child_0.half_size;
     child_0.center.y += child_0.half_size;
     child_0.center.z += child_0.half_size;
-    
 
+    // does the very same but for the 8 other points
     child_1.center = node.center;
     child_1.half_size = node.half_size / 2;
     child_1.particle = -1;
