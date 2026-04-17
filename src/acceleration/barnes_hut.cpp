@@ -349,8 +349,6 @@ void insert(int node_idx, int p_idx) {
     cerr << "new particle inserted\n";
 }
 
-// How do you make sure, that you pick the correct node / (best possible node if occupied)?
-
 // --- CALCULATING CENTER OF MASS ---
 // Once the tree is built, we calculate the physics properties of each cube.
 void set_mass_and_com(int node_idx) {
@@ -387,7 +385,7 @@ void set_mass_and_com(int node_idx) {
     }
 
     if (node.mass != 0) { // Prevent division by 0 for empty nodes
-        // useless if because node.mass is a child if mass=0???
+        // useless
         node.com /= node.mass; // Fix the scaling caused by the mass (basically a weighted average)
     }
 }
@@ -502,7 +500,7 @@ py::array_t<double> compute_accelerations(py::array_t<double> positions, py::arr
 
     cerr << "root initialized\n";
 
-    // 4. TREE BUILDING: Insert every particle into the Octree
+    // 4. TREE BUILDING: Insert every particle into the Octree (first biggest node and then get down)
     for (int i = 0; i < particles.size(); i++) {
         insert(0, i); // Insert particle into root node
 
@@ -519,7 +517,7 @@ py::array_t<double> compute_accelerations(py::array_t<double> positions, py::arr
     // 6. CALCULATE PHYSICS: Compute acceleration for every single particle
     vector<Vec3> accelerations(particles.size());
     for (int i = 0; i < particles.size(); i++) {
-        accelerations[i] = acceleration(0, i); // How do you make sure to calculate the acceleration of all particles?
+        accelerations[i] = acceleration(0, i); // Calculates the acceleration of every particle to node 0 (big cube) and then scales down for detail
 
         cerr << "acceleration" << i <<" was set successfully\n";
     }
