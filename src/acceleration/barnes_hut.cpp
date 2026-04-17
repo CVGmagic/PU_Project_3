@@ -12,6 +12,7 @@ namespace py = pybind11;
 
 // When rebuilding, use the following commands in x64 native ...
 // cd C:\Users\cvgma\VSCodeProjects\GitHub Projects\PU_Project_3\src\acceleration
+// cd C:\Users\maicm\projects\pu\src\acceleration
 // py setup.py build_ext --inplace
 
 
