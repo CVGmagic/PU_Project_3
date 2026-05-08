@@ -12,6 +12,7 @@ namespace py = pybind11;
 
 // When rebuilding, use the following commands in x64 native ...
 // cd C:\Users\cvgma\VSCodeProjects\GitHub Projects\PU_Project_3\src\acceleration
+// cd C:\Users\maicm\projects\pu\src\acceleration
 // py setup.py build_ext --inplace
 
 
@@ -122,12 +123,12 @@ py::array_t<double> vec3_to_numpy(vector<Vec3>& accelerations) {
     return result;
 }
 
-
+// function checks if has children return True, else return False
 bool has_children(const Node& node) {
     return node.children[0] != -1;
 }
 
-
+// function checks whether a particle is in a specific node (also bigger ones)
 bool is_in_node(const Node& node, int p_idx) {
     return (
         node.center.x - node.half_size <= particles[p_idx].x and
@@ -139,7 +140,7 @@ bool is_in_node(const Node& node, int p_idx) {
     );
 }
 
-
+// connects a particle with its correct octant
 int get_octant(Node& node, int p_idx) {
     Vec3& particle = particles[p_idx];
 
@@ -171,32 +172,33 @@ int get_octant(Node& node, int p_idx) {
     if (rel_cords.x >= 0 and rel_cords.y < 0 and rel_cords.z < 0) {
         return 7;
     }
-
-    // If for some reson no octant gets selected
-    return -1; // Will definitely lead to an error (intentionally)
 }
 
 
-// This is the least clean code I've written in a while, please don't judge
+// This generates the child_nodes of a parent_node
 void create_children(int node_idx) {
     cerr << "create children called with node_idx " << node_idx << "\n";
-    
-    // So vector reallocation doesn't break it
+    // Caius needs this to debug but it does nothing
+
     nodes.reserve(nodes.size() + 8);
+    /*the vector becomes much longer so it gets relocated -> pointers won't cause any troubles
+    because the relocation is done before the scaling */
 
     Node& node = nodes[node_idx];
 
     Node child_0, child_1, child_2, child_3, child_4, child_5, child_6, child_7;
 
-    child_0.center = node.center;
-    child_0.half_size = node.half_size / 2;
+    child_0.center = node.center; // has the same position as parent_node
+    child_0.half_size = node.half_size / 2; // has the half_length_size of parent_node
+    // is set to have no children_nodes or particles in it
     child_0.particle = -1;
     fill(begin(child_0.children), end(child_0.children), -1);
+    // adapts position of node
     child_0.center.x += child_0.half_size;
     child_0.center.y += child_0.half_size;
     child_0.center.z += child_0.half_size;
-    
 
+    // does the very same but for the 8 other points
     child_1.center = node.center;
     child_1.half_size = node.half_size / 2;
     child_1.particle = -1;
@@ -261,13 +263,13 @@ void create_children(int node_idx) {
     
 
     nodes.push_back(child_0);
-    node.children[0] = nodes.size() - 1;
+    node.children[0] = nodes.size() - 1; // links the parent's first slot to child one
 
     nodes.push_back(child_1);
-    node.children[1] = nodes.size() - 1;
+    node.children[1] = nodes.size() - 1; // links the parent's second slot to child two
 
     nodes.push_back(child_2);
-    node.children[2] = nodes.size() - 1;
+    node.children[2] = nodes.size() - 1; // ...
 
     nodes.push_back(child_3);
     node.children[3] = nodes.size() - 1;
@@ -286,6 +288,8 @@ void create_children(int node_idx) {
 }
 
 
+// --- THE INSERTION ALGORITHM ---
+// This places a particle (p_idx) into the tree structure.
 void insert(int node_idx, int p_idx) {
     cerr << "insert called with node_idx " << node_idx << " p_idx " << p_idx << "\n";
 
@@ -294,13 +298,17 @@ void insert(int node_idx, int p_idx) {
 
     cerr << "node.particle = " << node.particle  << "\n";
 
+/*
     cerr << "children:\n";
     for (int i = 0; i < 8; i++) {
         cerr << node.children[i] << " ";
     }
     cerr << "\n\n";
+*/
+// What do the lines above do except printing?
 
-    // Empty leaf
+    // CASE 1: EMPTY LEAF
+    // If the node is an empty leaf put the particle into the node
     if (node.particle == -1 and not has_children(node)) {
         cerr << "empty leaf\n";
 
@@ -308,11 +316,12 @@ void insert(int node_idx, int p_idx) {
         return;
     }
 
-    // Internal node
+    // CASE 2: INTERNAL NODE (Already split)
+    // If this node already has children, find out which child the particle belongs in.
     if (has_children(node)) { 
         cerr << "internal node\n";
 
-        int oct = get_octant(node, p_idx);
+        int oct = get_octant(node, p_idx); // Finds the correct child
         
         if (oct == -1 or oct > 7) {
             throw runtime_error("Invalid octant encountered");
@@ -322,48 +331,52 @@ void insert(int node_idx, int p_idx) {
         return;
     }
 
-    // Leaf with particle
+    // CASE 3: LEAF WITH PARTICLE (Conflict!)
+    // If we get here, the node is a leaf but ALREADY has a particle.
+    // We must split this node into 8 smaller ones to accommodate both.
     cerr << "leaf with particle\n";
 
-    int old_p_idx = node.particle;
-    node.particle = -1; 
+    int old_p_idx = node.particle; // Temporarily save the occupant.
+    node.particle = -1; // This node is now a parent (no longer a leaf).
 
-    create_children(node_idx);
-
+    create_children(node_idx); // creates the children
     cerr << "children created\n";
 
+    // Re-insert both particles
     insert(node_idx, old_p_idx); // Insert old particle
-
     cerr << "old particle inserted\n";
 
     insert(node_idx, p_idx); // Insert new particle
-
     cerr << "new particle inserted\n";
 }
 
+// How do you make sure, that you pick the correct node / (best possible node if occupied)?
 
+// --- CALCULATING CENTER OF MASS ---
+// Once the tree is built, we calculate the physics properties of each cube.
 void set_mass_and_com(int node_idx) {
     Node& node = nodes[node_idx];
 
+    // If it's a leaf with a particle, the mass/COM is just the particle itself.
     if (node.particle != -1) { // leaf with particle
         node.mass = m[node.particle];
         node.com = particles[node.particle];
         return;
     }
 
-    // Inside node
-    node.mass = 0;
-    node.com.x = 0;
-    node.com.y = 0;
-    node.com.z = 0;
-
     // If it's an empty leaf, skip the rest
     if (not has_children(node)) {
         return;
     }
 
+    node.mass = 0;
+    node.com.x = 0;
+    node.com.y = 0;
+    node.com.z = 0;
+
+    // Otherwise, initialize it as empty and sum up the children's properties.
     for (int i = 0; i < 8; i++) {
-        if (node.children[i] == -1) {
+        if (node.children[i] == -1) { // if no particle in node, skip it
             continue;
         }
 
@@ -371,20 +384,21 @@ void set_mass_and_com(int node_idx) {
 
         Node& child = nodes[node.children[i]];
         node.mass += child.mass; // Add child mass to total mass
-        node.com += child.com * child.mass; // Shift center of gravity
+        node.com += child.com * child.mass; // Shift center of mass (wrong but get's fixed later)
     }
 
     if (node.mass != 0) { // Prevent division by 0 for empty nodes
+        // useless if because node.mass is a child if mass=0???
         node.com /= node.mass; // Fix the scaling caused by the mass (basically a weighted average)
     }
 }
 
-
+// Calculates the magnitude (length) of a 3D vector: sqrt(x^2 + y^2 + z^2)
 double norm(const Vec3& vec) {
     return sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
 }
-
-
+// Calculates the squared magnitude. This is a performance optimization:
+// sqrt() is computationally expensive, so we use the squared distance whenever possible.
 double norm_sq(const Vec3& vec) {
     return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
 }
@@ -396,26 +410,31 @@ Vec3 acceleration(int node_idx, int p_idx) {
 
     Node& node = nodes[node_idx];
 
-    // No mass or same particle
+    // CHECK: Skip if the node is empty (mass=0)
+    // or if the node IS the particle itself (a star doesn't pull on itself)
     if (node.mass == 0 or node.particle == p_idx) {
         Vec3 f;
         f.x = 0;
         f.y = 0;
         f.z = 0;
-        return f;
+        return f; // Return zero acceleration
     }
-
+    // else calculate acceleration like this:
+    // Calculate displacement vector 'd' from the particle to the node's Center of Mass (com)
     Vec3 d = node.com - particles[p_idx];
     double dist_sq = norm_sq(d);
-    double dist = sqrt(dist_sq + eps_sq);
-    double inv_dist_cubed = 1 / ((dist_sq + eps_sq) * dist);
+    double dist = sqrt(dist_sq + eps_sq); // softening parameter
+    double inv_dist_cubed = 1 / ((dist_sq + eps_sq) * dist); // Gravity formula prep: 1 / r^3.
 
-    // Approximation is good enough and octant doesn't contain particle
+    // --- THE BARNES-HUT CRITERION ---
+    // 'node.half_size / dist' is the "opening angle".
+    // If the node is far away enough (smaller than 'theta'), we treat the
+    // ENTIRE node as a single point mass. This is the big shortcut!
     if (node.half_size / dist < theta and not is_in_node(node, p_idx)) {
         return d * (G * node.mass * inv_dist_cubed);
     }
 
-    // Otherwise, recurse
+    // Otherwise, add the force of every single node (=particle)
     Vec3 f;
     f.x = 0;
     f.y = 0;
@@ -435,6 +454,8 @@ Vec3 acceleration(int node_idx, int p_idx) {
 
 // Gets the numpy array from python and returns the result. This function is what actually gets called by Python
 py::array_t<double> compute_accelerations(py::array_t<double> positions, py::array_t<double> masses) {
+
+    // 1. DATA CONVERSION: Move data from NumPy arrays to C++ vectors
     particles.clear();
     particles = numpy_to_vec_vec3(positions); // Get particles as vector<Vec3>
     
@@ -445,14 +466,12 @@ py::array_t<double> compute_accelerations(py::array_t<double> positions, py::arr
 
     cerr << "numpy_to_vec ran\n";
 
-    double lower_x = DBL_MAX;
-    double lower_y = DBL_MAX;
-    double lower_z = DBL_MAX;
+    // 2. BOUNDING BOX: Find the limits of our universe to build the root node (first node)
+    // We start with the largest/smallest possible doubles
+    double lower_x = DBL_MAX, lower_y = DBL_MAX, lower_z = DBL_MAX;
+    double upper_x = -DBL_MAX, upper_y = -DBL_MAX, upper_z = -DBL_MAX;
 
-    double upper_x = -DBL_MAX;
-    double upper_y = -DBL_MAX;
-    double upper_z = -DBL_MAX;
-
+// find the smallest cube in which all particles are
     for (Vec3& p : particles) {
         lower_x = min(lower_x, p.x);
         lower_y = min(lower_y, p.y);
@@ -462,7 +481,6 @@ py::array_t<double> compute_accelerations(py::array_t<double> positions, py::arr
         upper_y = max(upper_y, p.y);
         upper_z = max(upper_z, p.z);
     }
-
    
     Vec3 root_center; // Center of the root node
     root_center.x = (lower_x + upper_x) / 2;
@@ -478,14 +496,14 @@ py::array_t<double> compute_accelerations(py::array_t<double> positions, py::arr
     root.center = root_center;
     root.half_size = max({size_x, size_y, size_z}) / 2;
     root.particle = -1;
-    fill(begin(root.children), end(root.children), -1);
+    fill(begin(root.children), end(root.children), -1); // What does this do?
 
     nodes.clear(); // Clear from previous timestep
     nodes.push_back(root);
 
     cerr << "root initialized\n";
 
-    // Build tree
+    // 4. TREE BUILDING: Insert every particle into the Octree
     for (int i = 0; i < particles.size(); i++) {
         insert(0, i); // Insert particle into root node
 
@@ -494,19 +512,19 @@ py::array_t<double> compute_accelerations(py::array_t<double> positions, py::arr
 
     cerr << "tree built\n";
 
-    // Set masses coms
+    // 5. AGGREGATION: Post-process the tree to calculate Mass and Center of Mass for all nodes
     set_mass_and_com(0);
 
     cerr << "masses set\n";
 
-    // Compute acceleration for each particle
+    // 6. CALCULATE PHYSICS: Compute acceleration for every single particle
     vector<Vec3> accelerations(particles.size());
     for (int i = 0; i < particles.size(); i++) {
-        accelerations[i] = acceleration(0, i);
+        accelerations[i] = acceleration(0, i); // How do you make sure to calculate the acceleration of all particles?
 
         cerr << "acceleration" << i <<" was set successfully\n";
     }
-
+    // 7. RETURN: Convert C++ Vec3 results back to a NumPy array for Python
     py::array_t<double> res = vec3_to_numpy(accelerations);
 
     cerr << "result converted to numpy successfully\n";
