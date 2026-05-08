@@ -14,7 +14,6 @@ n = 10
 r = np.zeros((n + 1, 3))
 r[1:] = create_relaxed_sphere_3D(np.array([100, 0, 0]), 3, n)
 
-print(r)
 sizes = np.full(n + 1, 10)
 sizes[0] = 30
 m = np.ones(n + 1)

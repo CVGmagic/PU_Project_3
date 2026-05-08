@@ -3,7 +3,7 @@ from acceleration.acceleration_calculator_3D import calculate_gravitational_acce
 import numpy as np
 from renderers import renderer_3D
 from simulation.energy_calculator import get_total_energy
-from acceleration import barnes_hut
+from acceleration import barnes_hut_python
 
 canvas = scene.SceneCanvas(keys='interactive', show=True)
 view = canvas.central_widget.add_view()
@@ -23,7 +23,7 @@ dt = 0.01
 v = np.zeros((r.shape[0], 3))
 v[1] = [0, 0, 0]
 v[2] = [0, 0, 0]
-a = barnes_hut.compute_accelerations(r, m)
+a = barnes_hut_python.compute_accelerations(r, m)
 v += a * dt / 2
 
 def update(event):
@@ -31,7 +31,7 @@ def update(event):
     global r, v
     r += v * dt
 
-    a = barnes_hut.compute_accelerations(r, m)
+    a = barnes_hut_python.compute_accelerations(r, m)
 
     v += a * dt
 
