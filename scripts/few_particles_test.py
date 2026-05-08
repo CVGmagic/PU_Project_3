@@ -37,8 +37,6 @@ def update(event):
 
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
-    print(get_total_energy(r, m, v))
-
 
 timer = app.Timer(1e-32, connect=update, start=True)  # ~60 FPS
 app.run()
