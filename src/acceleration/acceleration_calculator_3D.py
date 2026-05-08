@@ -1,6 +1,7 @@
 import numpy as np
+from numba import njit
 import math
-from simulation.constants import G, eps_sq
+from simulation.constants import G, eps_sq, r0, k
 
 """
 sigma = 0.5   # The 'size' of your particles.
@@ -48,7 +49,8 @@ def calc_acc_rep_np(r, m):
     return a
 
 
-def calculate_gravitational_acceleration_maic(r, m, en_rel):
+@njit
+def calculate_gravitational_acceleration(r, m, en_rel):
     """
     Calculates an attractive acceleration between points.
     Has epsilon, but no short distance repulsion.
@@ -64,11 +66,13 @@ def calculate_gravitational_acceleration_maic(r, m, en_rel):
     return a
 
 
-def calculate_gravitational_acceleration(r, m):
+def calculate_gravitational_acceleration_caius(r, m):
     """
     Calculates an attractive acceleration between points.
     Has epsilon, but no short distance repulsion.
     """
+    global G, eps_sq, k, r0
+
     diff = r[:, None, :] - r[None, :, :]  # stores 3D-vector between every two-point combination
     dist_sq = np.sum(diff * diff, axis=-1)  # stores 1D distance between evry two-point combination squared
     np.fill_diagonal(dist_sq, np.inf)  # changes distance of two-point combination of same points to inf
@@ -76,4 +80,11 @@ def calculate_gravitational_acceleration(r, m):
     inv_dist_3 = 1 / ((dist_sq + eps_sq) * np.sqrt(dist_sq + eps_sq))
 
     a = -np.sum(diff * inv_dist_3[:, :, None] * m[None, :, None], axis = 1)
-    return a
+
+    dist = np.sqrt(dist_sq)
+    overlap = np.maximum(r0 - dist, 0.0)
+    normed_direction = diff / (dist[:, :, None] + 1e-12)
+    a_rep = k * np.sum(normed_direction * overlap[:, :, None], axis=1)
+
+    return a + a_rep
+

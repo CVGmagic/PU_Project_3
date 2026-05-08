@@ -1,5 +1,3 @@
-import sys
-print(sys.path)
 from simulation import random_shape_creator_2D, random_shape_creator_3D, initial_conditions
 from renderers import renderer_2D, renderer_3D
 import numpy as np
@@ -7,36 +5,10 @@ import matplotlib.pyplot as plt
 from acceleration.acceleration_calculator_3D import calc_acc_rep_np, calculate_gravitational_acceleration
 from simulation.constants import G, eps_sq
 from vispy import scene, app
+from simulation.energy_calculator import calculate_potential_energies
 
 n = initial_conditions.n
-m = initial_conditions.mass
 
-"""
-r = random_shape_creator_3D.create_cuboid_3D(np.array([0, 0, 0]), np.array([1, 1, 1]), n)
-fig = plt.figure()
-ax = fig.add_subplot(projection="3d")
-ax.set_aspect("equal")
-renderer_3D.plot_points_3D_plt(r, ax)
-plt.pause(1e-30)
-
-dt = 0.01
-v = np.zeros((n, 3))
-a = calc_acc_rep_np(r, 100)
-v += a * dt / 2
-
-for i in range(30):
-    r += v * dt
-
-    a = calc_acc_rep_np(r, 100)
-
-    v += a * dt
-    ax.clear()
-    renderer_3D.plot_points_3D(r, ax)
-    plt.pause(1e-30)
-
-acceleration = acceleration_calculator_3D.create_array_acc(r, m)
-# it works!
-"""
 
 """ Try same with PyVis"""
 canvas = scene.SceneCanvas(keys='interactive', show=True) # creates a window
@@ -66,31 +38,6 @@ max_steps = 100
 
 
 
-def calculate_potential_energies(r, m):
-    """
-    Calculates Gravity PE and Pressure PE in one pass.
-    Returns: (gravity_potential_energy, pressure_potential_energy)
-    """
-    # 1. Core distance calculations
-    diff = r[:, None, :] - r[None, :, :]
-    dist_sq = np.sum(diff * diff, axis=-1) + eps_sq
-    np.fill_diagonal(dist_sq, np.inf)
-
-    # 2. Shared variables
-    dist = np.sqrt(dist_sq)
-    mass_matrix = m[:, None] * m[None, :]
-
-    # 3. Gravity Energy (Integral of 1/r^2 is -1/r)
-    # Using the 0.5 here to account for double-counting pairs
-    gravity_potential_energy = -0.5 * np.sum(mass_matrix * (1 / dist))
-
-    # 4. Pressure Energy (Integral of 1/r^8 is 1/(7 * r^7))
-    # r^7 = (dist_sq^3 * dist)
-    pressure_potential_energy = 0.5 * np.sum(mass_matrix * (1 / (7 * dist_sq ** 3 * dist)))
-
-    return gravity_potential_energy, pressure_potential_energy
-
-
 def update_conditions_rep(): #  'event' is needed with the timer which later allows the command timer.stop()
     global r, v, m, dt
 
@@ -109,6 +56,7 @@ def update_conditions(): #  'event' is needed with the timer which later allows 
 
     a = calculate_gravitational_acceleration(r, m, energy_relation)
     v = a * dt
+
 
 def update_starting_position(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with wrong gravity
@@ -134,6 +82,7 @@ def update_starting_position(event): #  'event' is needed with the timer which l
 
     step_count += 1
 
+
 def update_simulation(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with correct gravity
     global r, v, m, dt, energy_relation
@@ -145,6 +94,7 @@ def update_simulation(event): #  'event' is needed with the timer which later al
     v += a * dt
 
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
+
 
 timer1 = app.Timer(0.016, connect=update_starting_position, start=True)  # ~60 FPS but actually limited by calculations so same as while run do
 timer2 = app.Timer(0.016, connect=update_simulation, start=False) # ~60 FPS but actually limited by calculations so same as while run do
