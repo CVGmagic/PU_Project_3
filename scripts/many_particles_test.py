@@ -1,9 +1,10 @@
 from vispy import scene, app
-from acceleration.acceleration_calculator_3D import calculate_gravitational_acceleration
+from acceleration.acceleration_calculator_3D import calculate_gravitational_acceleration_caius
 import numpy as np
 from renderers import renderer_3D
 from simulation.energy_calculator import get_total_energy
 from simulation.random_shape_creator_3D import create_relaxed_sphere_3D
+from acceleration.barnes_hut_python import compute_accelerations
 
 canvas = scene.SceneCanvas(keys='interactive', show=True)
 view = canvas.central_widget.add_view()
@@ -16,7 +17,7 @@ r[1:] = create_relaxed_sphere_3D(np.array([100, 0, 0]), 3, n)
 
 sizes = np.full(n + 1, 10)
 sizes[0] = 30
-m = np.ones(n + 1)
+m = np.full(n+1, 1)
 m[0] = 100000
 
 # Create markers (GPU points)
@@ -27,8 +28,8 @@ view.camera.set_range()
 
 dt = 0.01
 v = np.zeros((r.shape[0], 3))
-v[1:] = [0, 50, 0]
-a = calculate_gravitational_acceleration(r, m)
+v[1:] = [0, 0, 0]
+a = compute_accelerations(r, m)
 v += a * dt / 2
 
 def update(event):
@@ -39,7 +40,8 @@ def update(event):
     """ Print distance for debugging"""
     dist = r[0] - r[1]
 
-    a = calculate_gravitational_acceleration(r, m)
+    a = compute_accelerations(r, m)
+    print(a)
 
     v += a * dt
 
