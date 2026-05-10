@@ -4,21 +4,22 @@ import numpy as np
 from renderers import renderer_3D
 from simulation.energy_calculator import get_total_energy
 from simulation.random_shape_creator_3D import create_relaxed_sphere_3D
-from acceleration.barnes_hut_python import compute_accelerations
+from acceleration.barnes_hut import compute_accelerations
+from acceleration.acceleration_calculator_3D import calculate_gravitational_acceleration_caius
 
 canvas = scene.SceneCanvas(keys='interactive', show=True)
 view = canvas.central_widget.add_view()
 view.camera = 'turntable'
 
-n = 10
+n = 1
 # Particle data
 r = np.zeros((n + 1, 3))
-r[1:] = create_relaxed_sphere_3D(np.array([100, 0, 0]), 3, n)
+r[1:] = create_relaxed_sphere_3D(np.array([100, 0, 0]), r=3, n=n)
 
 sizes = np.full(n + 1, 10)
 sizes[0] = 30
 m = np.full(n+1, 1)
-m[0] = 100000
+m[0] = 1_000_000_000_000_000
 
 # Create markers (GPU points)
 scatter = scene.visuals.Markers()
@@ -41,7 +42,7 @@ def update(event):
     dist = r[0] - r[1]
 
     a = compute_accelerations(r, m)
-    print(a)
+    print(np.linalg.norm(a, axis=1))
 
     v += a * dt
 

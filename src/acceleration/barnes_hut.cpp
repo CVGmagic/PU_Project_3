@@ -55,7 +55,7 @@ vector<Vec3> numpy_to_vec_vec3(py::array_t<double> positions) {
     // Converts the numpy array to vec3 for cleaner code
     auto positions_contig = py::array_t<double, py::array::c_style | py::array::forcecast>(positions);
     auto buf = positions_contig.request(); // Stores a buffer object, which basically contains all information about the array
-    
+
     if (buf.ndim != 2 or buf.shape[1] != 3) {
         throw runtime_error("positions must have shape (N,3)");
     }
@@ -81,14 +81,14 @@ vector<double> numpy_to_vec(py::array_t<double> masses) {
     // Converts the numpy array to vec3 for cleaner code
     auto masses_contig = py::array_t<double, py::array::c_style | py::array::forcecast>(masses);
     auto buf = masses_contig.request(); // Stores a buffer object, which basically contains all information about the array
-    
+
     if (buf.ndim != 1) {
         throw runtime_error("masses must have shape (N)");
     }
 
     int N = buf.shape[0];
     // ptr is a pointer to the first element in the array. This allows us to do pointer arithmetic
-    double* ptr = static_cast<double*>(buf.ptr); 
+    double* ptr = static_cast<double*>(buf.ptr);
 
     vector<double> result(N);
     for (int i = 0; i < N; i++) {
@@ -103,7 +103,7 @@ py::array_t<double> vec3_to_numpy(vector<Vec3>& accelerations) {
     if (accelerations.empty()) {
         throw std::runtime_error("Empty acceleration vector");
     }
-    
+
     size_t N = accelerations.size();
 
     // allocate new array
@@ -206,7 +206,7 @@ void create_children(int node_idx) {
     child_1.center.x -= child_1.half_size;
     child_1.center.y += child_1.half_size;
     child_1.center.z += child_1.half_size;
-    
+
 
     child_2.center = node.center;
     child_2.half_size = node.half_size / 2;
@@ -215,7 +215,7 @@ void create_children(int node_idx) {
     child_2.center.x -= child_2.half_size;
     child_2.center.y -= child_2.half_size;
     child_2.center.z += child_2.half_size;
-    
+
 
     child_3.center = node.center;
     child_3.half_size = node.half_size / 2;
@@ -224,7 +224,7 @@ void create_children(int node_idx) {
     child_3.center.x += child_3.half_size;
     child_3.center.y -= child_3.half_size;
     child_3.center.z += child_3.half_size;
-    
+
 
     child_4.center = node.center;
     child_4.half_size = node.half_size / 2;
@@ -233,7 +233,7 @@ void create_children(int node_idx) {
     child_4.center.x += child_4.half_size;
     child_4.center.y += child_4.half_size;
     child_4.center.z -= child_4.half_size;
-    
+
 
     child_5.center = node.center;
     child_5.half_size = node.half_size / 2;
@@ -242,7 +242,7 @@ void create_children(int node_idx) {
     child_5.center.x -= child_5.half_size;
     child_5.center.y += child_5.half_size;
     child_5.center.z -= child_5.half_size;
-    
+
 
     child_6.center = node.center;
     child_6.half_size = node.half_size / 2;
@@ -251,7 +251,7 @@ void create_children(int node_idx) {
     child_6.center.x -= child_6.half_size;
     child_6.center.y -= child_6.half_size;
     child_6.center.z -= child_6.half_size;
-    
+
 
     child_7.center = node.center;
     child_7.half_size = node.half_size / 2;
@@ -260,7 +260,7 @@ void create_children(int node_idx) {
     child_7.center.x += child_7.half_size;
     child_7.center.y -= child_7.half_size;
     child_7.center.z -= child_7.half_size;
-    
+
 
     nodes.push_back(child_0);
     node.children[0] = nodes.size() - 1; // links the parent's first slot to child one
@@ -276,7 +276,7 @@ void create_children(int node_idx) {
 
     nodes.push_back(child_4);
     node.children[4] = nodes.size() - 1;
-    
+
     nodes.push_back(child_5);
     node.children[5] = nodes.size() - 1;
 
@@ -318,11 +318,11 @@ void insert(int node_idx, int p_idx) {
 
     // CASE 2: INTERNAL NODE (Already split)
     // If this node already has children, find out which child the particle belongs in.
-    if (has_children(node)) { 
+    if (has_children(node)) {
         cerr << "internal node\n";
 
         int oct = get_octant(node, p_idx); // Finds the correct child
-        
+
         if (oct == -1 or oct > 7) {
             throw runtime_error("Invalid octant encountered");
         }
@@ -403,7 +403,7 @@ double norm_sq(const Vec3& vec) {
 
 
 Vec3 acceleration(int node_idx, int p_idx) {
-    // Recursively computes the acceleration applied to particle p by all 
+    // Recursively computes the acceleration applied to particle p by all
     // the particles inside the node
 
     Node& node = nodes[node_idx];
@@ -456,7 +456,7 @@ py::array_t<double> compute_accelerations(py::array_t<double> positions, py::arr
     // 1. DATA CONVERSION: Move data from NumPy arrays to C++ vectors
     particles.clear();
     particles = numpy_to_vec_vec3(positions); // Get particles as vector<Vec3>
-    
+
     cerr << "numpy_to_vec_vec3 ran\n";
 
     m.clear();
@@ -479,7 +479,7 @@ py::array_t<double> compute_accelerations(py::array_t<double> positions, py::arr
         upper_y = max(upper_y, p.y);
         upper_z = max(upper_z, p.z);
     }
-   
+
     Vec3 root_center; // Center of the root node
     root_center.x = (lower_x + upper_x) / 2;
     root_center.y = (lower_y + upper_y) / 2;
@@ -535,7 +535,7 @@ py::array_t<double> compute_accelerations(py::array_t<double> positions, py::arr
 PYBIND11_MODULE(barnes_hut, module_object) {
     // Disable cerr
     std::cerr.setstate(std::ios_base::failbit);
-    
+
     module_object.def("compute_accelerations", &compute_accelerations,
           "Compute accelerations using Barnes-Hut");
 }
