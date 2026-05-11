@@ -2,15 +2,15 @@ import numpy as np
 from numba import njit, float64, int32
 from numba.experimental import jitclass
 from numba.typed import List
+from simulation.constants import G, eps_sq, epsilon
+import math
 
 # =========================
 # GLOBAL PARAMETERS
 # =========================
 
-eps = 0.05
-eps_sq = eps * eps
+eps = epsilon
 theta = 0.4
-G = 6.6743e-11
 
 
 # =========================
@@ -189,12 +189,12 @@ def acceleration(nodes, particles, node_idx, p_idx):
     dz = node.com[2] - particles[p_idx, 2]
 
     dist_sq = dx*dx + dy*dy + dz*dz
-    dist = np.sqrt(dist_sq + eps_sq)
+    dist = math.sqrt(dist_sq + eps_sq)
 
     inv_dist3 = 1.0 / ((dist_sq + eps_sq) * dist)
 
     # Barnes–Hut approximation condition
-    if node.half_size / dist < theta and node.children[0] == -1:
+    if node.half_size / dist < theta and not is_in_node(node, p_idx, particles):
         f = G * node.mass * inv_dist3
         return np.array([dx*f, dy*f, dz*f])
 
@@ -244,3 +244,16 @@ def compute_accelerations(positions, masses):
         acc[i] = acceleration(nodes, particles, 0, i)
 
     return acc
+
+
+@njit
+def is_in_node(node: Node, p_idx: int, particles: np.ndarray):
+    return (
+        node.center[0] - node.half_size <= particles[p_idx][0] and
+        node.center[0] + node.half_size > particles[p_idx][0] and
+        node.center[1] - node.half_size <= particles[p_idx][1] and
+        node.center[1] + node.half_size > particles[p_idx][1] and
+        node.center[2] - node.half_size <= particles[p_idx][2] and
+        node.center[2] + node.half_size > particles[p_idx][2]
+    )
+

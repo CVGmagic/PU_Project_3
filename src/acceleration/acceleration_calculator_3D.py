@@ -79,12 +79,7 @@ def calculate_gravitational_acceleration_caius(r, m):
 
     inv_dist_3 = 1 / ((dist_sq + eps_sq) * np.sqrt(dist_sq + eps_sq))
 
-    a = -np.sum(diff * inv_dist_3[:, :, None] * m[None, :, None], axis = 1)
+    a = -np.sum(diff * inv_dist_3[:, :, None] * m[None, :, None], axis = 1) * G
 
-    dist = np.sqrt(dist_sq)
-    overlap = np.maximum(r0 - dist, 0.0)
-    normed_direction = diff / (dist[:, :, None] + 1e-12)
-    a_rep = k * np.sum(normed_direction * overlap[:, :, None], axis=1)
-
-    return a + a_rep
+    return a
 
