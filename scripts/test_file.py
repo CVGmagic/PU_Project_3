@@ -1,3 +1,4 @@
+from scripts.main_file import simulation_start
 from simulation import random_shape_creator_2D, random_shape_creator_3D, initial_conditions
 from renderers import renderer_2D, renderer_3D
 import numpy as np
@@ -11,22 +12,25 @@ n = initial_conditions.n
 
 
 """ Try same with PyVis"""
-canvas = scene.SceneCanvas(keys='interactive', show=True) # creates a window
-view = canvas.central_widget.add_view() # adds a scene to window
-view.camera = 'turntable' # you can change perspective in your scene
+def create_canvas():
+    canvas = scene.SceneCanvas(keys='interactive', show=True) # creates a window
+    view = canvas.central_widget.add_view() # adds a scene to window
+    view.camera = 'turntable' # you can change perspective in your scene
 
-# Particle data
-r = random_shape_creator_3D.create_sphere_3D(np.array([0, 0, 0]), 1, n) # creates the random points
-sizes = np.random.rand(n) * 20 # saves a list with n-elements which all have different sizes
+    # Particle data
+    r = random_shape_creator_3D.create_sphere_3D(np.array([0, 0, 0]), 1, n) # creates the random points
+    sizes = np.random.rand(n) * 20 # saves a list with n-elements which all have different sizes
 
-# Create markers (GPU points)
-scatter = scene.visuals.Markers() # an empty list (kinda)
-renderer_3D.plot_points_3D_PyVis(r, scatter, sizes) # fills scatter with coordinates + sizes
-view.add(scatter) # adds scatter (basically points) to view
+    # Create markers (GPU points)
+    scatter = scene.visuals.Markers() # an empty list (kinda)
+    renderer_3D.plot_points_3D_PyVis(r, scatter, sizes) # fills scatter with coordinates + sizes
+    view.add(scatter) # adds scatter (basically points) to view
+    return canvas, scatter, sizes, r
 
+canvas, scatter, sizes, r = create_canvas()
 """ add n -> n+1 and add line 57 when we add the sum but also add the coordinate of the sun that it works
 len(m) == len(r)"""
-dt = 0.00005
+dt = 0.0001
 m = np.full(n, 100) # creates array with n elements and (masses of 100)
 v = np.zeros((n, 3)) # v has n elements in 3D filled with 0's
 a = calc_acc_rep_np(r, m) # calculates the acceleration of every single r based on their location (r)
@@ -48,7 +52,7 @@ def update_conditions_rep(): #  'event' is needed with the timer which later all
 
 
 def update_conditions(): #  'event' is needed with the timer which later allows the command timer.stop()
-    global r, v, m, dt, energy_relation
+    global r, v, m, dt
 
     sum_acc_gravity, sum_acc_pressure = calculate_potential_energies(r, m)
 
@@ -56,6 +60,7 @@ def update_conditions(): #  'event' is needed with the timer which later allows 
 
     a = calculate_gravitational_acceleration(r, m, energy_relation)
     v = a * dt
+    return a, v, energy_relation
 
 
 def update_starting_position(event): #  'event' is needed with the timer which later allows the command timer.stop()
@@ -70,15 +75,13 @@ def update_starting_position(event): #  'event' is needed with the timer which l
 
     r += v * dt
 
-    renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
+    renderer_3D.plot_points_3D_PyVis(r,scatter, sizes)
 
-    if step_count % max_steps == 0:
-
-        update_conditions()
+    if step_count == max_steps:
 
         timer1.stop()  # stop calling update
-        timer2.start()  # start new function
-
+        update_conditions()
+        timer_accurate.start()
 
     step_count += 1
 
@@ -97,7 +100,8 @@ def update_simulation(event): #  'event' is needed with the timer which later al
 
 
 timer1 = app.Timer(0.016, connect=update_starting_position, start=True)  # ~60 FPS but actually limited by calculations so same as while run do
-timer2 = app.Timer(0.016, connect=update_simulation, start=False) # ~60 FPS but actually limited by calculations so same as while run do
+timer_accurate = app.Timer(0.016, connect=update_simulation, start=False) # ~60 FPS but actually limited by calculations so same as while run do
+timer_barneshut =  app.Timer(0.016, connect=update_simulation, start=False)
 app.run() # starts the simulation
 
 
