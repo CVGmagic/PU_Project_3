@@ -58,6 +58,7 @@ n = 500
 barnes_hut = False
 dt = 0.0001
 mass = 100
+max_steps = 50
 
 def create_canvas():
     global canvas, scatter, sizes
@@ -66,14 +67,14 @@ def create_canvas():
     view.camera = 'turntable' # you can change perspective in your scene
 
     # Particle data
-    r = random_shape_creator_3D.create_sphere_3D(np.array([0, 0, 0]), 1, n) # creates the random points
+    random_points = random_shape_creator_3D.create_sphere_3D(np.array([0, 0, 0]), 1, n) # creates the random points
     sizes = np.random.rand(n) * 20 # saves a list with n-elements which all have different sizes
 
     # Create markers (GPU points)
     scatter = scene.visuals.Markers() # an empty list (kinda)
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes) # fills scatter with coordinates + sizes
     view.add(scatter) # adds scatter (basically points) to view
-    return r
+    return random_points
 
 r = create_canvas()
 
@@ -84,12 +85,9 @@ a = calc_acc_rep_np(r, m) # calculates the acceleration of every single r based 
 v += a * dt / 2 # updates v
 
 step_count = 0
-max_steps = 50
 
 timer1 = app.Timer(0.016, connect=update_starting_position, start=True)  # ~60 FPS but actually limited by calculations so same as while run do
 timer_accurate = app.Timer(0.016, connect=update_simulation, start=False) # ~60 FPS but actually limited by calculations so same as while run do
 timer_barnes_hut =  app.Timer(0.016, connect=update_simulation, start=False) # not correct function
-
-# add central point
 
 app.run()
