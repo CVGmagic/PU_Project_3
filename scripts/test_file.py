@@ -1,4 +1,3 @@
-from scripts.main_file import simulation_start
 from simulation import random_shape_creator_2D, random_shape_creator_3D, initial_conditions
 from renderers import renderer_2D, renderer_3D
 import numpy as np

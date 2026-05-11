@@ -25,7 +25,7 @@ a, v, energy_relation = update_conditions()
 
 # add central point
 
-if not barnes_hut & simulation_start:
+if not barnes_hut:
     timer_accurate.start()
 
 
