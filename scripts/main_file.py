@@ -4,6 +4,7 @@ from simulation import random_shape_creator_3D
 from acceleration.acceleration_calculator_3D import calc_acc_rep_np, calculate_gravitational_acceleration
 from simulation.energy_calculator import calculate_potential_energies
 from renderers import renderer_3D
+from acceleration import barnes_hut_python
 
 
 def update_starting_position(event): #  'event' is needed with the timer which later allows the command timer.stop()
@@ -54,8 +55,20 @@ def update_simulation(event): #  'event' is needed with the timer which later al
 
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
+def update_simulation_barnes_hut(event): #  'event' is needed with the timer which later allows the command timer.stop()
+    # update positions every frame with correct gravity
+    global r, v, m, dt, energy_relation
+    print("barnes hut RUNS")
+    r += v * dt
+
+    a = barnes_hut_python.compute_accelerations(r, m)
+
+    v += a * dt
+
+    renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
+
 n = 500
-barnes_hut = False
+barnes_hut = True
 dt = 0.0001
 mass = 100
 max_steps = 50
@@ -72,7 +85,7 @@ def create_canvas():
 
     # Create markers (GPU points)
     scatter = scene.visuals.Markers() # an empty list (kinda)
-    renderer_3D.plot_points_3D_PyVis(r, scatter, sizes) # fills scatter with coordinates + sizes
+    renderer_3D.plot_points_3D_PyVis(random_points, scatter, sizes) # fills scatter with coordinates + sizes
     view.add(scatter) # adds scatter (basically points) to view
     return random_points
 
@@ -88,6 +101,6 @@ step_count = 0
 
 timer1 = app.Timer(0.016, connect=update_starting_position, start=True)  # ~60 FPS but actually limited by calculations so same as while run do
 timer_accurate = app.Timer(0.016, connect=update_simulation, start=False) # ~60 FPS but actually limited by calculations so same as while run do
-timer_barnes_hut =  app.Timer(0.016, connect=update_simulation, start=False) # not correct function
+timer_barnes_hut =  app.Timer(0.016, connect=update_simulation_barnes_hut, start=False) # not correct function
 
 app.run()

@@ -2,7 +2,7 @@ from pybind11.setup_helpers import Pybind11Extension, build_ext
 from setuptools import setup
 
 # Provides setup for barnes_hut.cpp
-# I have no Idea how this works, please dont change anything
+# I have no Idea how this works, please don't change anything
 
 ext_modules = [
     Pybind11Extension(
