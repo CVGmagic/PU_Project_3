@@ -63,7 +63,7 @@ def update_conditions(): #  'event' is needed with the timer which later allows 
 
 def update_starting_position(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with wrong gravity
-    global r, v, m, dt, max_steps, step_count
+    global r, v, m, dt, max_steps, step_count, barnes_hut
 
     a = calc_acc_rep_np(r, m)
     a += -0.5 * r # prevents the sphere from exploding
@@ -79,14 +79,17 @@ def update_starting_position(event): #  'event' is needed with the timer which l
 
         timer1.stop()  # stop calling update
         update_conditions()
-        timer_accurate.start()
+        if not barnes_hut:
+            timer_accurate.start()
+        if barnes_hut:
+            timer_barnes_hut.start()
 
     step_count += 1
 
 
 def update_simulation(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with correct gravity
-    global r, v, m, dt, energy_rel
+    global r, v, m, dt, energy_relation
 
     r += v * dt
 
@@ -99,7 +102,8 @@ def update_simulation(event): #  'event' is needed with the timer which later al
 
 timer1 = app.Timer(0.016, connect=update_starting_position, start=True)  # ~60 FPS but actually limited by calculations so same as while run do
 timer_accurate = app.Timer(0.016, connect=update_simulation, start=False) # ~60 FPS but actually limited by calculations so same as while run do
-timer_barneshut =  app.Timer(0.016, connect=update_simulation, start=False)
+timer_barnes_hut =  app.Timer(0.016, connect=update_simulation, start=False) # not correct function
+
 app.run() # starts the simulation
 
 
