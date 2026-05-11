@@ -51,7 +51,7 @@ def update_conditions_rep(): #  'event' is needed with the timer which later all
 
 
 def update_conditions(): #  'event' is needed with the timer which later allows the command timer.stop()
-    global r, v, m, dt
+    global r, v, m, dt, energy_relation
 
     sum_acc_gravity, sum_acc_pressure = calculate_potential_energies(r, m)
 
@@ -59,7 +59,6 @@ def update_conditions(): #  'event' is needed with the timer which later allows 
 
     a = calculate_gravitational_acceleration(r, m, energy_relation)
     v = a * dt
-    return a, v, energy_relation
 
 
 def update_starting_position(event): #  'event' is needed with the timer which later allows the command timer.stop()
@@ -87,7 +86,7 @@ def update_starting_position(event): #  'event' is needed with the timer which l
 
 def update_simulation(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with correct gravity
-    global r, v, m, dt, energy_relation
+    global r, v, m, dt, energy_rel
 
     r += v * dt
 
