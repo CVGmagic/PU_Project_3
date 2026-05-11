@@ -5,15 +5,6 @@ from acceleration.acceleration_calculator_3D import calc_acc_rep_np, calculate_g
 from simulation.energy_calculator import calculate_potential_energies
 from renderers import renderer_3D
 
-def update_conditions(): #  'event' is needed with the timer which later allows the command timer.stop()
-    global r, v, m, dt, energy_relation
-
-    sum_acc_gravity, sum_acc_pressure = calculate_potential_energies(r, m)
-
-    energy_relation = sum_acc_gravity / sum_acc_pressure
-
-    a = calculate_gravitational_acceleration(r, m, energy_relation)
-    v = a * dt
 
 def update_starting_position(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with wrong gravity
@@ -39,6 +30,17 @@ def update_starting_position(event): #  'event' is needed with the timer which l
             timer_barnes_hut.start()
 
     step_count += 1
+
+
+def update_conditions(): #  'event' is needed with the timer which later allows the command timer.stop()
+    global r, v, m, dt, energy_relation
+
+    sum_acc_gravity, sum_acc_pressure = calculate_potential_energies(r, m)
+
+    energy_relation = sum_acc_gravity / sum_acc_pressure
+
+    a = calculate_gravitational_acceleration(r, m, energy_relation)
+    v = a * dt
 
 def update_simulation(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with correct gravity
