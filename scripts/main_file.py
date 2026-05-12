@@ -68,7 +68,7 @@ def update_simulation_barnes_hut(event): #  'event' is needed with the timer whi
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
 n = 500
-barnes_hut = True
+barnes_hut = False
 dt = 0.0001
 mass = 100
 max_steps = 50
@@ -99,8 +99,8 @@ v += a * dt / 2 # updates v
 
 step_count = 0
 
-timer1 = app.Timer(0.016, connect=update_starting_position, start=True)  # ~60 FPS but actually limited by calculations so same as while run do
-timer_accurate = app.Timer(0.016, connect=update_simulation, start=False) # ~60 FPS but actually limited by calculations so same as while run do
-timer_barnes_hut =  app.Timer(0.016, connect=update_simulation_barnes_hut, start=False) # not correct function
+timer1 = app.Timer(0.0016, connect=update_starting_position, start=True)  # ~60 FPS but actually limited by calculations so same as while run do
+timer_accurate = app.Timer(0.0016, connect=update_simulation, start=False) # ~60 FPS but actually limited by calculations so same as while run do
+timer_barnes_hut =  app.Timer(0.0016, connect=update_simulation_barnes_hut, start=False) # not correct function
 
 app.run()
