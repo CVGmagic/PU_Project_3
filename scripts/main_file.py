@@ -58,7 +58,7 @@ def update_simulation(event): #  'event' is needed with the timer which later al
 def update_simulation_barnes_hut(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with correct gravity
     global r, v, m, dt, energy_relation
-    print("barnes hut RUNS")
+
     r += v * dt
 
     a = barnes_hut_python.compute_accelerations(r, m)
