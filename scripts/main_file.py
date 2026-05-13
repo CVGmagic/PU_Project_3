@@ -5,9 +5,11 @@ from acceleration.acceleration_calculator_3D import calc_acc_rep_np, calculate_g
 from simulation.energy_calculator import calculate_potential_energies
 from renderers import renderer_3D
 from acceleration import barnes_hut_python
+from measure_tools.measure_functions import compute_principal_axis_lengths, \
+    compute_principal_axis_lengths_outliers_excluded
 
 
-def update_starting_position(event): #  'event' is needed with the timer which later allows the command timer.stop()
+def update_starting_position(event): # 'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with wrong gravity
     global r, v, m, dt, max_steps, step_count, barnes_hut
 
@@ -42,6 +44,7 @@ def scale_r_back():
     max_dist = np.sqrt(np.sum(r * r, axis=1).max())
     r = r/max_dist
 
+
 def update_conditions(): #  'event' is needed with the timer which later allows the command timer.stop()
     global r, v, m, dt, energy_relation
 
@@ -51,6 +54,7 @@ def update_conditions(): #  'event' is needed with the timer which later allows 
 
     a = calculate_gravitational_acceleration(r, m, energy_relation)
     v = a * dt
+
 
 def add_solar_point(distance_star, v_rotation, central_body_m):
     global r, m, v, sizes
@@ -81,6 +85,11 @@ def update_simulation(event): #  'event' is needed with the timer which later al
     view.camera.center = r[0]
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
+    principal_axis_lengths = compute_principal_axis_lengths_outliers_excluded(r)
+    np.sort(principal_axis_lengths)
+    print(principal_axis_lengths[2] / principal_axis_lengths[0])
+
+
 def update_simulation_barnes_hut(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with correct gravity
     global r, v, m, dt, energy_relation, view
@@ -94,13 +103,14 @@ def update_simulation_barnes_hut(event): #  'event' is needed with the timer whi
     view.camera.center = r[0]
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
+
 n = 500
 barnes_hut = False
 dt = 0.0001
 mass = 100
 max_steps = 50
 v_rotation = 400
-distance_star = 4
+distance_star = 4.5
 mass_star = mass * 5000
 
 def create_canvas():
