@@ -1,4 +1,5 @@
 import numpy as np
+import time
 from vispy import app, scene
 from simulation import random_shape_creator_3D
 from acceleration.acceleration_calculator_3D import calc_acc_rep_np, calculate_gravitational_acceleration
@@ -37,7 +38,6 @@ def update_starting_position(event): # 'event' is needed with the timer which la
 
     step_count += 1
 
-
 def scale_r_back():
     global r
 
@@ -71,10 +71,12 @@ def add_solar_point(distance_star, v_rotation, central_body_m):
     central_body_size = 50
     sizes = np.insert(sizes, 0, central_body_size)
 
-
 def update_simulation(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with correct gravity
-    global r, v, m, dt, energy_relation, view
+    global r, v, m, dt, energy_relation, view, total_time, sim_step_count, sim_start_time
+
+    if sim_step_count == 0:
+        sim_start_time = time.perf_counter()
 
     r += v * dt
 
@@ -90,13 +92,25 @@ def update_simulation(event): #  'event' is needed with the timer which later al
     print(principal_axis_lengths[2] / principal_axis_lengths[0])
 
 
+    sim_step_count += 1
+
+    if sim_step_count == 100:
+        end_time = time.perf_counter()
+        total_time = end_time - sim_start_time
+
+        if stop_time:
+            print(total_time)
+
 def update_simulation_barnes_hut(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with correct gravity
-    global r, v, m, dt, energy_relation, view
+    global r, v, m, dt, energy_relation, view, total_time, sim_step_count, sim_start_time
+
+    if sim_step_count == 0:
+        sim_start_time = time.perf_counter()
 
     r += v * dt
 
-    a = barnes_hut_python.compute_accelerations(r, m)
+    a = barnes_hut_python.compute_accelerations(r, m, energy_relation)
 
     v += a * dt
 
@@ -104,14 +118,22 @@ def update_simulation_barnes_hut(event): #  'event' is needed with the timer whi
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
 
+    if sim_step_count == 100:
+        end_time = time.perf_counter()
+        total_time = end_time - sim_start_time
+
+        if stop_time:
+            print(total_time)
+
 n = 500
-barnes_hut = False
+barnes_hut = True
 dt = 0.0001
 mass = 100
 max_steps = 50
 v_rotation = 400
 distance_star = 4.5
 mass_star = mass * 5000
+stop_time = True
 
 def create_canvas():
     global canvas, scatter, sizes, view
@@ -121,7 +143,7 @@ def create_canvas():
 
     # Particle data
     random_points = random_shape_creator_3D.create_sphere_3D(np.array([0, 0, 0]), 1, n) # creates the random points
-    sizes = np.random.rand(n) * 15 # saves a list with n-elements which all have different sizes
+    sizes = np.full(n, 10)
 
     # Create markers (GPU points)
     scatter = scene.visuals.Markers() # an empty list (kinda)
@@ -136,6 +158,7 @@ v = np.zeros((n, 3)) # v has n elements in 3D filled with 0's
 a = calc_acc_rep_np(r, m) # calculates the acceleration of every single r based on their location (r)
 #m[n] = 33300000
 v += a * dt / 2 # updates v
+sim_step_count = 0
 
 step_count = 0
 
