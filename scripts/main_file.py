@@ -94,19 +94,29 @@ def update_simulation(event): #  'event' is needed with the timer which later al
 
 def update_simulation_barnes_hut(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with correct gravity
-    global r, v, m, dt, energy_relation, view
+    global r, v, m, dt, energy_relation, view, total_time, sim_step_count, sim_start_time
+
+    if sim_step_count == 0:
+        sim_start_time = time.perf_counter()
 
     r += v * dt
 
-    a = barnes_hut_python.compute_accelerations(r, m)
+    a = barnes_hut_python.compute_accelerations(r, m, energy_relation)
 
     v += a * dt
 
     view.camera.center = r[0]
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
+    if sim_step_count == 100:
+        end_time = time.perf_counter()
+        total_time = end_time - sim_start_time
+
+        if stop_time:
+            print(total_time)
+
 n = 500
-barnes_hut = False
+barnes_hut = True
 dt = 0.0001
 mass = 100
 max_steps = 50
