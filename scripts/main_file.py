@@ -24,6 +24,7 @@ def update_starting_position(event): #  'event' is needed with the timer which l
 
         timer1.stop()  # stop calling update
 
+        scale_r_back()
         update_conditions()
         add_solar_point(distance_star, v_rotation, mass_star)
 
@@ -34,6 +35,12 @@ def update_starting_position(event): #  'event' is needed with the timer which l
 
     step_count += 1
 
+
+def scale_r_back():
+    global r
+
+    max_dist = np.sqrt(np.sum(r * r, axis=1).max())
+    r = r/max_dist
 
 def update_conditions(): #  'event' is needed with the timer which later allows the command timer.stop()
     global r, v, m, dt, energy_relation
