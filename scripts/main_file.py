@@ -12,7 +12,6 @@ def update_starting_position(event): #  'event' is needed with the timer which l
     global r, v, m, dt, max_steps, step_count, barnes_hut
 
     a = calc_acc_rep_np(r, m)
-    a += -0.5 * r # prevents the sphere from exploding
 
     v += a * dt
     v *= 0.9 # adds damping
@@ -64,7 +63,7 @@ def add_solar_point(distance_star, v_rotation, central_body_m):
 
 def update_simulation(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with correct gravity
-    global r, v, m, dt, energy_relation
+    global r, v, m, dt, energy_relation, view
 
     r += v * dt
 
@@ -72,11 +71,12 @@ def update_simulation(event): #  'event' is needed with the timer which later al
 
     v += a * dt
 
+    view.camera.center = r[0]
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
 def update_simulation_barnes_hut(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with correct gravity
-    global r, v, m, dt, energy_relation
+    global r, v, m, dt, energy_relation, view
 
     r += v * dt
 
@@ -84,6 +84,7 @@ def update_simulation_barnes_hut(event): #  'event' is needed with the timer whi
 
     v += a * dt
 
+    view.camera.center = r[0]
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
 n = 500
@@ -92,18 +93,18 @@ dt = 0.0001
 mass = 100
 max_steps = 50
 v_rotation = 400
-distance_star = 6
+distance_star = 4
 mass_star = mass * 5000
 
 def create_canvas():
-    global canvas, scatter, sizes
+    global canvas, scatter, sizes, view
     canvas = scene.SceneCanvas(keys='interactive', show=True) # creates a window
     view = canvas.central_widget.add_view() # adds a scene to window
     view.camera = 'turntable' # you can change perspective in your scene
 
     # Particle data
     random_points = random_shape_creator_3D.create_sphere_3D(np.array([0, 0, 0]), 1, n) # creates the random points
-    sizes = np.random.rand(n) * 20 # saves a list with n-elements which all have different sizes
+    sizes = np.random.rand(n) * 15 # saves a list with n-elements which all have different sizes
 
     # Create markers (GPU points)
     scatter = scene.visuals.Markers() # an empty list (kinda)
