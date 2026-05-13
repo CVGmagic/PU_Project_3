@@ -176,7 +176,7 @@ def set_mass_and_com(nodes, particles, m, node_idx):
 # =========================
 
 @njit
-def acceleration(nodes, particles, node_idx, p_idx, E_rel):
+def acceleration(nodes, particles, m, node_idx, p_idx, E_rel):
     global theta, eps_sq, G
 
     node = nodes[node_idx]
@@ -198,7 +198,7 @@ def acceleration(nodes, particles, node_idx, p_idx, E_rel):
     if node.half_size / dist < theta and not is_in_node(node, p_idx, particles):
         f_grav = G * node.mass * inv_dist3
 
-        f_press = -E_rel * 1 / dist_sq**4 / dist
+        f_press = -E_rel * 1 / dist_sq**4 / dist / m[p_idx]
 
         f_tot = f_grav + f_press
         force_tot = np.array([dx * f_tot, dy * f_tot, dz * f_tot])
@@ -210,7 +210,7 @@ def acceleration(nodes, particles, node_idx, p_idx, E_rel):
     for i in range(8):
         cidx = node.children[i]
         if cidx != -1:
-            res += acceleration(nodes, particles, cidx, p_idx, E_rel)
+            res += acceleration(nodes, particles, m, cidx, p_idx, E_rel)
 
     return res
 
@@ -251,7 +251,7 @@ def compute_accelerations(particles, m, E_rel):
     acc = np.zeros_like(particles)
 
     for i in prange(len(particles)): # prange to parallelize all particles
-        acc[i] = acceleration(nodes, particles, 0, i, E_rel)
+        acc[i] = acceleration(nodes, particles, m, 0, i, E_rel)
 
     return acc
 

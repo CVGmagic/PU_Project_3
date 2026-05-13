@@ -129,7 +129,7 @@ def update_simulation_barnes_hut(event): #  'event' is needed with the timer whi
             print(total_time)
 
 n = 500
-barnes_hut = False
+barnes_hut = True
 dt = 0.0001
 mass = 100
 max_steps = 50
