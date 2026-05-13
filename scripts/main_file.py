@@ -134,8 +134,8 @@ dt = 0.0001
 mass = 100
 max_steps = 50
 v_rotation = 400
-distance_star = 4.5
-mass_star = mass * 5000
+distance_star = 3
+mass_star = n * mass * 1e11
 stop_time = True
 
 def create_canvas():
