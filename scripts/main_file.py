@@ -8,6 +8,7 @@ from renderers import renderer_3D
 from acceleration import barnes_hut_python
 from measure_tools.measure_functions import compute_principal_axis_lengths, \
     compute_principal_axis_lengths_outliers_excluded
+import matplotlib.pyplot as plt
 
 
 def update_starting_position(event): # 'event' is needed with the timer which later allows the command timer.stop()
@@ -89,10 +90,11 @@ def update_simulation(event): #  'event' is needed with the timer which later al
     view.camera.center = r[0]
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
+    """
     principal_axis_lengths = compute_principal_axis_lengths_outliers_excluded(r)
     np.sort(principal_axis_lengths)
     print(principal_axis_lengths[2] / principal_axis_lengths[0])
-
+    """
 
     sim_step_count += 1
 
@@ -128,8 +130,10 @@ def update_simulation_barnes_hut(event): #  'event' is needed with the timer whi
         if stop_time:
             print(total_time)
 
-n = 500
-barnes_hut = True
+
+
+n = 1000
+barnes_hut = False
 dt = 0.0001
 mass = 100
 max_steps = 50
