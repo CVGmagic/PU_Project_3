@@ -38,6 +38,7 @@ def update_starting_position(event): # 'event' is needed with the timer which la
 
     step_count += 1
 
+
 def scale_r_back():
     global r
 
@@ -71,6 +72,7 @@ def add_solar_point(distance_star, v_rotation, central_body_m):
     central_body_size = 50
     sizes = np.insert(sizes, 0, central_body_size)
 
+
 def update_simulation(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with correct gravity
     global r, v, m, dt, energy_relation, view, total_time, sim_step_count, sim_start_time
@@ -101,6 +103,7 @@ def update_simulation(event): #  'event' is needed with the timer which later al
         if stop_time:
             print(total_time)
 
+
 def update_simulation_barnes_hut(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with correct gravity
     global r, v, m, dt, energy_relation, view, total_time, sim_step_count, sim_start_time
@@ -126,7 +129,7 @@ def update_simulation_barnes_hut(event): #  'event' is needed with the timer whi
             print(total_time)
 
 n = 500
-barnes_hut = True
+barnes_hut = False
 dt = 0.0001
 mass = 100
 max_steps = 50

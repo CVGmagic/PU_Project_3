@@ -82,7 +82,7 @@ def get_octant(node_center, particle_pos):
 # =========================
 # CHILD CREATION
 # =========================
-
+@njit
 def create_children(nodes, node_idx):
     # IMPORTANT: Python-level list expansion (Numba limitation)
     node = nodes[node_idx]
@@ -111,7 +111,7 @@ def create_children(nodes, node_idx):
 # =========================
 # INSERT INTO TREE
 # =========================
-
+@njit
 def insert(nodes, particles, m, node_idx, p_idx):
 
     node = nodes[node_idx]
@@ -140,7 +140,7 @@ def insert(nodes, particles, m, node_idx, p_idx):
 # =========================
 # MASS + CENTER OF MASS
 # =========================
-
+@njit
 def set_mass_and_com(nodes, particles, m, node_idx):
 
     node = nodes[node_idx]
@@ -175,8 +175,9 @@ def set_mass_and_com(nodes, particles, m, node_idx):
 # ACCELERATION COMPUTATION
 # =========================
 
-@njit(fastmath=True)
+@njit
 def acceleration(nodes, particles, node_idx, p_idx, E_rel):
+    global theta, eps_sq, G
 
     node = nodes[node_idx]
 
@@ -197,7 +198,7 @@ def acceleration(nodes, particles, node_idx, p_idx, E_rel):
     if node.half_size / dist < theta and not is_in_node(node, p_idx, particles):
         f_grav = G * node.mass * inv_dist3
 
-        f_press = -E_rel * 1 / dist_sq**5
+        f_press = -E_rel * 1 / dist_sq**4 / dist
 
         f_tot = f_grav + f_press
         force_tot = np.array([dx * f_tot, dy * f_tot, dz * f_tot])
@@ -209,7 +210,7 @@ def acceleration(nodes, particles, node_idx, p_idx, E_rel):
     for i in range(8):
         cidx = node.children[i]
         if cidx != -1:
-            res += acceleration(nodes, particles, cidx, p_idx)
+            res += acceleration(nodes, particles, cidx, p_idx, E_rel)
 
     return res
 
@@ -217,12 +218,19 @@ def acceleration(nodes, particles, node_idx, p_idx, E_rel):
 # =========================
 # MAIN FUNCTION
 # =========================
-@njit(fastmath=True, parallel=True)
+@njit(parallel=True)
 def compute_accelerations(particles, m, E_rel):
 
     # Bounding box
-    lower = np.min(particles, axis=0)
-    upper = np.max(particles, axis=0)
+    lower = np.zeros(3, dtype=np.float64)
+    lower[0] = np.min(particles[:, 0])
+    lower[1] = np.min(particles[:, 1])
+    lower[2] = np.min(particles[:, 2])
+
+    upper = np.zeros(3, dtype=np.float64)
+    upper[0] = np.max(particles[:, 0])
+    upper[1] = np.max(particles[:, 1])
+    upper[2] = np.max(particles[:, 2])
 
     center = (lower + upper) / 2
     size = np.max(upper - lower) / 2
