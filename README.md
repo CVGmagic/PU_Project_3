@@ -9,3 +9,5 @@ Idea: with every point generate a small dead zone or search a function that gene
 TODO: if points are quick they can jump a collision because the collision happens during delta t
 Idea: we use normal Euler(Krome) but instead of teleporting points we draw a line of p(i) to p(i+1) and if two lines get close we make delta t smaller for both points
 Might be easier to just keep delta t small so that particles can't even get crazy accelerations (if decent start position there shouldn't be any problems) maybe also make pushingback_force a little weaker that they don't get crazy energys
+
+Link to Latex Project: https://de.overleaf.com/project/69e2316a4b0a029ccb17a271
