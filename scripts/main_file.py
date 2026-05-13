@@ -24,7 +24,10 @@ def update_starting_position(event): #  'event' is needed with the timer which l
     if step_count == max_steps:
 
         timer1.stop()  # stop calling update
+
         update_conditions()
+        add_solar_point(distance_star, v_rotation, mass_star)
+
         if not barnes_hut:
             timer_accurate.start()
         if barnes_hut:
@@ -42,6 +45,22 @@ def update_conditions(): #  'event' is needed with the timer which later allows 
 
     a = calculate_gravitational_acceleration(r, m, energy_relation)
     v = a * dt
+
+def add_solar_point(distance_star, v_rotation, central_body_m):
+    global r, m, v, sizes
+
+    v = np.full((n, 3), [0.0, float(v_rotation), 0.0], dtype=np.float64)
+    central_body_v = np.array([[0.0, 0.0, 0.0]], dtype=np.float64)
+    v = np.vstack((central_body_v, v))
+
+    central_body_r = [distance_star, 0, 0]
+    r = np.vstack((central_body_r, r))
+
+    m = np.concatenate(([central_body_m], m))
+
+    central_body_size = 50
+    sizes = np.insert(sizes, 0, central_body_size)
+
 
 def update_simulation(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with correct gravity
@@ -72,6 +91,9 @@ barnes_hut = False
 dt = 0.0001
 mass = 100
 max_steps = 50
+v_rotation = 400
+distance_star = 6
+mass_star = mass * 5000
 
 def create_canvas():
     global canvas, scatter, sizes
