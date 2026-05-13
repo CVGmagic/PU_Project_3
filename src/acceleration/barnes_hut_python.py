@@ -1,5 +1,5 @@
 import numpy as np
-from numba import njit, float64, int32
+from numba import njit, float64, int32, prange
 from numba.experimental import jitclass
 from numba.typed import List
 from simulation.constants import G, eps_sq, epsilon
@@ -176,7 +176,7 @@ def set_mass_and_com(nodes, particles, m, node_idx):
 # =========================
 
 @njit(fastmath=True)
-def acceleration(nodes, particles, node_idx, p_idx):
+def acceleration(nodes, particles, node_idx, p_idx, E_rel):
 
     node = nodes[node_idx]
 
@@ -195,8 +195,13 @@ def acceleration(nodes, particles, node_idx, p_idx):
 
     # Barnes–Hut approximation condition
     if node.half_size / dist < theta and not is_in_node(node, p_idx, particles):
-        f = G * node.mass * inv_dist3
-        return np.array([dx*f, dy*f, dz*f])
+        f_grav = G * node.mass * inv_dist3
+
+        f_press = -E_rel * 1 / dist_sq**5
+
+        f_tot = f_grav + f_press
+        force_tot = np.array([dx * f_tot, dy * f_tot, dz * f_tot])
+        return force_tot
 
     # Otherwise recurse
     res = np.zeros(3)
@@ -212,11 +217,8 @@ def acceleration(nodes, particles, node_idx, p_idx):
 # =========================
 # MAIN FUNCTION
 # =========================
-
-def compute_accelerations(positions, masses):
-
-    particles = positions.astype(np.float64)
-    m = masses.astype(np.float64)
+@njit(fastmath=True, parallel=True)
+def compute_accelerations(particles, m, E_rel):
 
     # Bounding box
     lower = np.min(particles, axis=0)
@@ -231,7 +233,7 @@ def compute_accelerations(positions, masses):
     nodes.append(root)
 
     # Build tree
-    for i in range(len(particles)):
+    for i in range(len(particles)): #
         insert(nodes, particles, m, 0, i)
 
     # Mass + COM pass
@@ -240,8 +242,8 @@ def compute_accelerations(positions, masses):
     # Compute accelerations
     acc = np.zeros_like(particles)
 
-    for i in range(len(particles)):
-        acc[i] = acceleration(nodes, particles, 0, i)
+    for i in prange(len(particles)): # prange to parallelize all particles
+        acc[i] = acceleration(nodes, particles, 0, i, E_rel)
 
     return acc
 
@@ -256,4 +258,5 @@ def is_in_node(node: Node, p_idx: int, particles: np.ndarray):
         node.center[2] - node.half_size <= particles[p_idx][2] and
         node.center[2] + node.half_size > particles[p_idx][2]
     )
+
 
