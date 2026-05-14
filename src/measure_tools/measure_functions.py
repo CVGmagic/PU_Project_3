@@ -68,7 +68,7 @@ def compute_elongation(positions, percentile=95) -> float:
     return principal_axis_lengths[2] / principal_axis_lengths[0]
 
 
-def benchmark_computation(particle_counts: list[int], do_standard=True, do_barnes_hut=True, opening_angles=[0.4], trials=100, dt=0.0001):
+def benchmark_computation(particle_counts: list[int], do_standard=True, do_barnes_hut=True, opening_angles=[0.4], trials=100, dt=0.001):
     n = len(particle_counts)
     standard_times = np.empty(n)
     barnes_hut_times = np.empty((n, len(opening_angles)))
@@ -134,8 +134,7 @@ def roche_limit(m_planet, m_star, r_planet) -> float:
     return 2.44 * r_planet * (m_star / m_planet) ** (1 / 3)
 
 
-def plot_elongations(distances: list[float], n: int = 500, dt=0.0001, m_planet=50_000, m_star: float = None,
-                     timesteps=100) -> None:
+def plot_elongations(distances: list[float], n: int = 500, dt=0.001, m_planet=50_000, m_star: float = None, timesteps=100, pre_relax=0) -> None:
     """
     Takes distances as a fraction of the roche limit and plots the axis
     elongation over some number of timesteps for every distance
@@ -145,19 +144,24 @@ def plot_elongations(distances: list[float], n: int = 500, dt=0.0001, m_planet=5
         m_star = m_planet * 1e11  # Sun earth ratio
     roche = roche_limit(m_planet, m_star, 1)
 
+    r_init = generate_points(n, 1, 0, dt=dt, pre_relax=pre_relax, m=np.full(n, mass))
+    m = np.full(n + 1, mass)
+    m[0] = m_star
+
+    sum_acc_gravity, sum_acc_pressure = calculate_potential_energies(r_init[1:], m[1:])
+    energy_relation = sum_acc_gravity / sum_acc_pressure
+
+
     elongations = np.empty((len(distances), timesteps))
     for i, distance in enumerate(distances):
         distance_star = distance * roche
         v_planet = [0, circular_orbit_velocity(distance_star, m_star), 0]
 
-        r = generate_points(n, 1, distance_star, dt=dt)
-        m = np.full(n + 1, mass)
-        m[0] = m_star
         v = np.full((n + 1, 3), v_planet)
         v[0] = [0, 0, 0]
 
-        sum_acc_gravity, sum_acc_pressure = calculate_potential_energies(r[1:], m[1:])
-        energy_relation = sum_acc_gravity / sum_acc_pressure
+        r = np.copy(r_init)
+        r[0, 0] = distance_star
 
         a = calculate_gravitational_acceleration(r, m, energy_relation)
         v += a * (dt / 2)

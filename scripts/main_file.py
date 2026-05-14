@@ -92,8 +92,7 @@ def update_simulation(event): #  'event' is needed with the timer which later al
     view.camera.center = planet_com(r, m)
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
-
-    print(compute_elongation(r))
+    print(sim_step_count)
 
     sim_step_count += 1
 

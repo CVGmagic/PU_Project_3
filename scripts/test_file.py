@@ -30,7 +30,7 @@ def create_canvas():
 canvas, scatter, sizes, r = create_canvas()
 """ add n -> n+1 and add line 57 when we add the sum but also add the coordinate of the sun that it works
 len(m) == len(r)"""
-dt = 0.0001
+dt = 0.001
 m = np.full(n, 100) # creates array with n elements and (masses of 100)
 v = np.zeros((n, 3)) # v has n elements in 3D filled with 0's
 a = calc_acc_rep_np(r, m) # calculates the acceleration of every single r based on their location (r)
