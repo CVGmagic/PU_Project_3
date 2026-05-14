@@ -7,8 +7,10 @@ from simulation.energy_calculator import calculate_potential_energies
 from renderers import renderer_3D
 from acceleration import barnes_hut_python
 from measure_tools.measure_functions import compute_principal_axis_lengths, \
-    compute_principal_axis_lengths_outliers_excluded
+    compute_principal_axis_lengths_outliers_excluded, planet_com, circular_orbit_velocity, roche_limit, compute_elongation
 import matplotlib.pyplot as plt
+import math
+from simulation.constants import G
 
 
 def update_starting_position(event): # 'event' is needed with the timer which later allows the command timer.stop()
@@ -55,7 +57,7 @@ def update_conditions(): #  'event' is needed with the timer which later allows 
     energy_relation = sum_acc_gravity / sum_acc_pressure
 
     a = calculate_gravitational_acceleration(r, m, energy_relation)
-    v = a * dt
+    v += a * dt
 
 
 def add_solar_point(distance_star, v_rotation, central_body_m):
@@ -87,14 +89,11 @@ def update_simulation(event): #  'event' is needed with the timer which later al
 
     v += a * dt
 
-    view.camera.center = r[0]
+    view.camera.center = planet_com(r, m)
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
-    """
-    principal_axis_lengths = compute_principal_axis_lengths_outliers_excluded(r)
-    np.sort(principal_axis_lengths)
-    print(principal_axis_lengths[2] / principal_axis_lengths[0])
-    """
+
+    print(compute_elongation(r))
 
     sim_step_count += 1
 
@@ -132,15 +131,18 @@ def update_simulation_barnes_hut(event): #  'event' is needed with the timer whi
 
 
 
-n = 1000
+
+n = 500
 barnes_hut = False
 dt = 0.0001
 mass = 100
+mass_planet = n * mass
 max_steps = 50
-v_rotation = 400
-distance_star = 3
-mass_star = n * mass * 1e11
-stop_time = True
+mass_star = n * mass * 1e11 # Made mass dependent on planet mass instead of particle mass
+roche = roche_limit(mass_planet, mass_star, 1)
+distance_star = 1 * roche # 3.3 (gives a nice spiral)
+v_rotation = circular_orbit_velocity(distance_star, mass_star)
+stop_time = False
 
 def create_canvas():
     global canvas, scatter, sizes, view
