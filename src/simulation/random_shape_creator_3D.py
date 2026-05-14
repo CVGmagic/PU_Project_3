@@ -1,4 +1,5 @@
 import numpy as np
+import math
 from simulation.constants import epsilon
 
 def single_point_cuboid(lower: np.ndarray, upper: np.ndarray):
@@ -35,16 +36,17 @@ def create_sphere_3D(m : np.ndarray, r : int, n : int):
     return points
 
 
-def create_relaxed_sphere_3D(m : np.ndarray, positions : float, n : int) -> np.ndarray:
+def create_relaxed_sphere_3D(m : np.ndarray, r : float, n : int, relaxation_steps: int=3) -> np.ndarray:
     """
     Creates a relaxed Sphere
     :param m: Midpoint of the Sphere
-    :param positions: Radius of the initial Sphere
+    :param r: Radius of the initial Sphere
     :param n: Number of particles in the Sphere
+    :param relaxation_steps: How many steps of repulsive acceleration to do
     :returns: Positions of the particles
     """
 
-    positions = create_sphere_3D(m, positions, n)
+    positions = create_sphere_3D(m, r, n)
     mass = 10
     dt = 0.01
     v = np.full((n, 3), 0, dtype=float)
@@ -61,7 +63,7 @@ def create_relaxed_sphere_3D(m : np.ndarray, positions : float, n : int) -> np.n
     # Half velocity step
     v += a * dt / 2
 
-    for i in range(3): # We do some number of timesteps
+    for i in range(relaxation_steps): # We do some number of timesteps
         positions += v * dt
 
         # Recompute acceleration

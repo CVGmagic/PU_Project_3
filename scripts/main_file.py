@@ -55,9 +55,6 @@ def update_conditions(): #  'event' is needed with the timer which later allows 
     sum_acc_gravity, sum_acc_pressure = calculate_potential_energies(r, m)
 
     energy_relation = sum_acc_gravity / sum_acc_pressure
-    print(energy_relation)
-
-
 
 
 def add_solar_point(distance_star, v_rotation, central_body_m):
@@ -92,7 +89,6 @@ def update_simulation(event): #  'event' is needed with the timer which later al
     view.camera.center = planet_com(r, m)
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
-    print(sim_step_count)
 
     sim_step_count += 1
 
@@ -117,7 +113,7 @@ def update_simulation_barnes_hut(event): #  'event' is needed with the timer whi
 
     v += a * dt
 
-    view.camera.center = r[0]
+    view.camera.center = planet_com(r, m)
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
 
@@ -130,7 +126,7 @@ def update_simulation_barnes_hut(event): #  'event' is needed with the timer whi
 
 
 n = 500
-barnes_hut = False
+barnes_hut = True
 dt = 0.0001
 mass = 100
 mass_planet = n * mass

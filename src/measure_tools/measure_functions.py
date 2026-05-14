@@ -69,24 +69,26 @@ def compute_elongation(positions, percentile=95) -> float:
 
 
 def benchmark_computation(particle_counts: list[int], do_standard=True, do_barnes_hut=True, opening_angles=[0.4], trials=100, dt=0.001):
-    n = len(particle_counts)
-    standard_times = np.empty(n)
-    barnes_hut_times = np.empty((n, len(opening_angles)))
-    r_init = create_relaxed_sphere_3D()
-    v_init = np.random.random((n, 3))
-    m_init = np.random.random(n) * 100
+    standard_times = np.empty(len(particle_counts))
+    barnes_hut_times = np.empty((len(particle_counts), len(opening_angles)))
+
     e_rel = 8.6e-14 # Just an example value from one real simulation
+
     for i, particle_count in enumerate(particle_counts):
+        n = particle_count
+        r_init = create_relaxed_sphere_3D(np.array([0, 0, 0]), 1, n)
+        v_init = np.random.random((n, 3))
+        m_init = np.random.random(n) * 100
         if do_standard:
             r = np.copy(r_init)
             v = np.copy(v_init)
             m = np.copy(m_init)
             # Warmup call
-            calculate_gravitational_acceleration(r, m, 0.5)
+            calculate_gravitational_acceleration(r, m, e_rel)
 
             start_time = time.perf_counter()
             for _ in range(trials):
-                a = calculate_gravitational_acceleration(r, m, 0.5)
+                a = calculate_gravitational_acceleration(r, m, e_rel)
                 v += a * dt
                 r += v * dt
             end_time = time.perf_counter()
@@ -99,11 +101,11 @@ def benchmark_computation(particle_counts: list[int], do_standard=True, do_barne
                 v = np.copy(v_init)
                 m = np.copy(m_init)
                 # Warmup call
-                compute_accelerations(r, m, 0.5)
+                compute_accelerations(r, m, e_rel)
 
                 start_time = time.perf_counter()
                 for _ in range(trials):
-                    a = compute_accelerations(r, m, 0.5)
+                    a = compute_accelerations(r, m, e_rel)
                     v += a * dt
                     r += v * dt
                 end_time = time.perf_counter()
@@ -111,7 +113,7 @@ def benchmark_computation(particle_counts: list[int], do_standard=True, do_barne
             barnes_hut_times[i] = angle_times
 
     plt.figure()
-    plt.title(f"Comparison between Standard and Barnes Hut Algorithm on {trials} timesteps with dt = {dt}")
+    plt.title(f"Comparison between Standard and Barnes Hut Algorithm \n {trials} timesteps with dt = {dt}")
     plt.xlabel("Number of particles")
     plt.ylabel("Elapsed time [s]")
     plt.plot(particle_counts, standard_times, label="Standard Times")
