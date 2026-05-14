@@ -55,9 +55,9 @@ def update_conditions(): #  'event' is needed with the timer which later allows 
     sum_acc_gravity, sum_acc_pressure = calculate_potential_energies(r, m)
 
     energy_relation = sum_acc_gravity / sum_acc_pressure
+    print(energy_relation)
 
-    a = calculate_gravitational_acceleration(r, m, energy_relation)
-    v += a * dt
+
 
 
 def add_solar_point(distance_star, v_rotation, central_body_m):
@@ -129,8 +129,6 @@ def update_simulation_barnes_hut(event): #  'event' is needed with the timer whi
             print(total_time)
 
 
-
-
 n = 500
 barnes_hut = False
 dt = 0.0001
@@ -139,7 +137,7 @@ mass_planet = n * mass
 max_steps = 50
 mass_star = n * mass * 1e11 # Made mass dependent on planet mass instead of particle mass
 roche = roche_limit(mass_planet, mass_star, 1)
-distance_star = 1 * roche # 3.3 (gives a nice spiral)
+distance_star = 5 # 1 * roche # 3.3 (gives a nice spiral)
 v_rotation = circular_orbit_velocity(distance_star, mass_star)
 stop_time = False
 

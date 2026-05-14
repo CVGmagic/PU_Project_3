@@ -48,9 +48,9 @@ def calculate_potential_energies(r, m):
     # Using the 0.5 here to account for double-counting pairs
     gravity_potential_energy = -0.5 * np.sum(mass_matrix * (1 / dist)) * G
 
-    # 4. Pressure Energy (Integral of 1/r^8 is 1/(7 * r^7))
-    # r^7 = (dist_sq^3 * dist)
-    pressure_potential_energy = 0.5 * np.sum(mass_matrix * (1 / (7 * dist_sq ** 3 * dist)))
+    # 4. Pressure Energy (Integral of 1/r^8 is -1/(7 * r^7))
+    # r^5 = (dist_sq^3 * dist)
+    pressure_potential_energy = -0.5 * np.sum(mass_matrix * (1 / (4 * dist_sq ** 3 * dist)))
 
     return gravity_potential_energy, pressure_potential_energy
 

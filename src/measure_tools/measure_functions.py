@@ -73,9 +73,9 @@ def benchmark_computation(particle_counts: list[int], do_standard=True, do_barne
     standard_times = np.empty(n)
     barnes_hut_times = np.empty((n, len(opening_angles)))
     r_init = create_relaxed_sphere_3D()
-    v_init = np.random.random((n, 3)) * 15
-    m_init = np.random.random(n) * 15
-
+    v_init = np.random.random((n, 3))
+    m_init = np.random.random(n) * 100
+    e_rel = 8.6e-14 # Just an example value from one real simulation
     for i, particle_count in enumerate(particle_counts):
         if do_standard:
             r = np.copy(r_init)
