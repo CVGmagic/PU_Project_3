@@ -1,6 +1,7 @@
 from vispy import app, scene
 import numpy as np
 from simulation import random_shape_creator_3D
+from acceleration.acceleration_calculator_3D import calculate_gravitational_acceleration, calc_acc_rep_np
 
 
 def update_starting_position(r: np.ndarray, v: np.ndarray, m: np.ndarray, dt=0.001, steps=50, barnes_hut=False): # 'event' is needed with the timer which later allows the command timer.stop()
@@ -50,7 +51,7 @@ def add_solar_point(r, m, v, distance_star: float, v_rotation: float, central_bo
     r = np.vstack((central_body_r, r))
 
     m = np.concatenate(([central_body_m], m))
-    return
+    return r, m, v
 
 
 def create_canvas(canvas, scatter, sizes, view) -> np.ndarray:
@@ -74,6 +75,7 @@ def generate_points(particle_count, planet_radius, star_distance) -> np.ndarray:
     r = random_points = random_shape_creator_3D.create_sphere_3D(np.array([0, 0, 0]), planet_radius, particle_count)
     v = np.zeros_like(r)
     m = np.full(particle_count, 100)
+    dt = 0.001
 
     for _ in range(50):
         a = calc_acc_rep_np(r, m)
@@ -84,7 +86,6 @@ def generate_points(particle_count, planet_radius, star_distance) -> np.ndarray:
         r += v * dt
 
     scale_r_back(r, planet_radius)
-
-    r = np.vstack(([distance_star, 0, 0], r))
-    return
+    r = np.vstack(([star_distance, 0, 0], r))
+    return r
 

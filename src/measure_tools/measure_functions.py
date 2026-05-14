@@ -7,6 +7,7 @@ from simulation.random_shape_creator_3D import create_relaxed_sphere_3D
 import math
 from simulation.constants import G
 from setup import generate_points
+from simulation.energy_calculator import calculate_potential_energies
 
 
 def compute_covariance_matrix(positions) -> np.ndarray:
@@ -29,7 +30,7 @@ def compute_principal_axis_lengths(positions) -> np.ndarray:
     return np.linalg.eigvalsh(cov_matrix)
 
 
-def compute_covariance_matrix_outliers_excluded(positions, threshold=2.5) -> np.ndarray:
+def compute_covariance_matrix_outliers_excluded(positions, percentile=95) -> np.ndarray:
     """
     Computes the covariance matrix with planet centered coordinates excluding outliers
 
@@ -40,9 +41,9 @@ def compute_covariance_matrix_outliers_excluded(positions, threshold=2.5) -> np.
     X = positions[1:] - np.mean(positions[1:], axis=0)  # Exclude particle 0 (the sun)
 
     dist = np.linalg.norm(X, axis=1)
-    sigma = np.sqrt(np.sum((dist - np.mean(dist)) ** 2))
+    thresh_dist = np.percentile(dist, percentile)
 
-    mask = np.where(dist <= threshold * sigma)
+    mask = dist <= thresh_dist
     X_filtered = X[mask]
 
     cov_matrix = X_filtered.T @ X_filtered / len(X_filtered)
@@ -50,19 +51,19 @@ def compute_covariance_matrix_outliers_excluded(positions, threshold=2.5) -> np.
     return cov_matrix
 
 
-def compute_principal_axis_lengths_outliers_excluded(positions, threshold=2.5):
+def compute_principal_axis_lengths_outliers_excluded(positions, percentile=95):
     """
         :param positions: An array containing the positions
         :returns: An ndarray of length 3 containing the principal axis lengths
     """
-    cov_matrix = compute_covariance_matrix_outliers_excluded(positions, threshold)
+    cov_matrix = compute_covariance_matrix_outliers_excluded(positions, percentile=percentile)
 
     return np.linalg.eigvalsh(cov_matrix)
 
 
-def compute_elongation(positions, threshold=2.5) -> float:
-    principal_axis_lengths = compute_principal_axis_lengths_outliers_excluded(r)
-    np.sort(principal_axis_lengths)
+def compute_elongation(positions, percentile=95) -> float:
+    principal_axis_lengths = compute_principal_axis_lengths_outliers_excluded(positions, percentile=percentile)
+    principal_axis_lengths = np.sort(principal_axis_lengths)
     return principal_axis_lengths[2] / principal_axis_lengths[0]
 
 
@@ -132,24 +133,49 @@ def roche_limit(m_planet, m_star, r_planet) -> float:
     return 2.44 * r_planet * (m_star / m_planet)**(1/3)
 
 
-def plot_elongations(distances: np.ndarray, n=500, dt=0.001, m_planet=50_000, m_star: float=None, timesteps=1000):
+def plot_elongations(distances: np.ndarray, n: int=500, dt=0.001, m_planet=50_000, m_star: float=None, timesteps=100) -> None:
     """
-    Takes distances as a fraction of the roche limit and plots the axis elongation over some number of timesteps
-    :returns: Function unfinished, returns None for now
+    Takes distances as a fraction of the roche limit and plots the axis
+    elongation over some number of timesteps for every distance
     """
-    n = 500
-    dt = 0.0001
     mass = m_planet / n
     if m_star is None:
-        m_star = mass_planet * 333_000  # Sun earth ratio
-    roche = roche_limit(m_planet, m_star, r_planet)
+        m_star = m_planet * 1e11  # Sun earth ratio
+    roche = roche_limit(m_planet, m_star, 1)
 
     elongations = np.empty((len(distances), timesteps))
-    for distance in distances:
+    for i, distance in enumerate(distances):
         distance_star = distance * roche
-        v_rotation = circular_orbit_velocity(distance_star, mass_star)
+        v_planet = [0, circular_orbit_velocity(distance_star, m_star), 0]
 
-    # TODO Maybe finish this function
+        r = generate_points(n, 1, distance_star)
+        m = np.full(n + 1, mass)
+        m[0] = m_star
+        v = np.full((n + 1, 3), v_planet)
+        v[0] = [0, 0, 0]
+
+        sum_acc_gravity, sum_acc_pressure = calculate_potential_energies(r, m)
+        energy_relation = sum_acc_gravity / sum_acc_pressure
+
+        a = calculate_gravitational_acceleration(r, m, energy_relation)
+        v += a * (dt / 2)
+
+        for j in range(timesteps):
+            r += v * dt
+            a = calculate_gravitational_acceleration(r, m, energy_relation)
+            v += a * dt
+            elongations[i, j] = compute_elongation(r)
+
+    print(elongations)
+    plt.figure()
+    plt.title(f"Elongation vs Time, n={n}, dt={dt}, m_planet={m_planet}, m_star={m_star}")
+    plt.xlabel("Time [s]")
+    plt.ylabel("Elongation")
+    for i, dist in enumerate(distances):
+        plt.plot(np.linspace(0, dt * timesteps, timesteps), elongations[i], label=f"{dist}")
+    plt.legend(loc="best")
+    plt.show()
+
     return
 
 
