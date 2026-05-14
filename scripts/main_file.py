@@ -34,6 +34,9 @@ def update_starting_position(event): # 'event' is needed with the timer which la
         update_conditions()
         add_solar_point(distance_star, v_rotation, mass_star)
 
+        a = calculate_gravitational_acceleration(r, m, energy_relation)
+        v += a * (dt / 2)
+
         if not barnes_hut:
             timer_accurate.start()
         if barnes_hut:
@@ -81,10 +84,9 @@ def update_simulation(event): #  'event' is needed with the timer which later al
         sim_start_time = time.perf_counter()
 
     r += v * dt
-
     a = calculate_gravitational_acceleration(r, m, energy_relation)
-
     v += a * dt
+
 
     view.camera.center = planet_com(r, m)
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
@@ -107,11 +109,9 @@ def update_simulation_barnes_hut(event): #  'event' is needed with the timer whi
     if sim_step_count == 0:
         sim_start_time = time.perf_counter()
 
-    r += v * dt
-
     a = barnes_hut_python.compute_accelerations(r, m, energy_relation)
-
     v += a * dt
+    r += v * dt
 
     view.camera.center = planet_com(r, m)
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
@@ -126,14 +126,14 @@ def update_simulation_barnes_hut(event): #  'event' is needed with the timer whi
 
 
 n = 500
-barnes_hut = True
-dt = 0.0001
+barnes_hut = False
+dt = 0.001
 mass = 100
 mass_planet = n * mass
 max_steps = 50
 mass_star = n * mass * 1e11 # Made mass dependent on planet mass instead of particle mass
 roche = roche_limit(mass_planet, mass_star, 1)
-distance_star = 5 # 1 * roche # 3.3 (gives a nice spiral)
+distance_star = 8 # 1 * roche # 3.3 (gives a nice spiral)
 v_rotation = circular_orbit_velocity(distance_star, mass_star)
 stop_time = False
 
