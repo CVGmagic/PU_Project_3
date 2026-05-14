@@ -71,13 +71,12 @@ def create_canvas(canvas, scatter, sizes, view) -> np.ndarray:
     return random_points
 
 
-def generate_points(particle_count, planet_radius, star_distance) -> np.ndarray:
+def generate_points(particle_count, planet_radius, star_distance, dt=0.0001, steps=50) -> np.ndarray:
     r = random_points = random_shape_creator_3D.create_sphere_3D(np.array([0, 0, 0]), planet_radius, particle_count)
     v = np.zeros_like(r)
     m = np.full(particle_count, 100)
-    dt = 0.001
 
-    for _ in range(50):
+    for _ in range(steps):
         a = calc_acc_rep_np(r, m)
 
         v += a * dt

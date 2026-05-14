@@ -8,12 +8,13 @@ import math
 from simulation.constants import G
 from setup import generate_points
 from simulation.energy_calculator import calculate_potential_energies
+from vispy import app, scene
 
 
 def compute_covariance_matrix(positions) -> np.ndarray:
     """Computes the covariance matrix with planet centered coordinates"""
     # These are now cloud centered coords
-    X = positions[1:] - np.mean(positions[1:], axis=0) # Exclude particle 0 (the sun)
+    X = positions[1:] - np.mean(positions[1:], axis=0)  # Exclude particle 0 (the sun)
 
     cov_matrix = X.T @ X / len(X)
 
@@ -130,10 +131,11 @@ def circular_orbit_velocity(dist_star, m_star) -> float:
 
 
 def roche_limit(m_planet, m_star, r_planet) -> float:
-    return 2.44 * r_planet * (m_star / m_planet)**(1/3)
+    return 2.44 * r_planet * (m_star / m_planet) ** (1 / 3)
 
 
-def plot_elongations(distances: np.ndarray, n: int=500, dt=0.001, m_planet=50_000, m_star: float=None, timesteps=100) -> None:
+def plot_elongations(distances: list[float], n: int = 500, dt=0.0001, m_planet=50_000, m_star: float = None,
+                     timesteps=100) -> None:
     """
     Takes distances as a fraction of the roche limit and plots the axis
     elongation over some number of timesteps for every distance
@@ -148,13 +150,13 @@ def plot_elongations(distances: np.ndarray, n: int=500, dt=0.001, m_planet=50_00
         distance_star = distance * roche
         v_planet = [0, circular_orbit_velocity(distance_star, m_star), 0]
 
-        r = generate_points(n, 1, distance_star)
+        r = generate_points(n, 1, distance_star, dt=dt)
         m = np.full(n + 1, mass)
         m[0] = m_star
         v = np.full((n + 1, 3), v_planet)
         v[0] = [0, 0, 0]
 
-        sum_acc_gravity, sum_acc_pressure = calculate_potential_energies(r, m)
+        sum_acc_gravity, sum_acc_pressure = calculate_potential_energies(r[1:], m[1:])
         energy_relation = sum_acc_gravity / sum_acc_pressure
 
         a = calculate_gravitational_acceleration(r, m, energy_relation)
@@ -166,17 +168,15 @@ def plot_elongations(distances: np.ndarray, n: int=500, dt=0.001, m_planet=50_00
             v += a * dt
             elongations[i, j] = compute_elongation(r)
 
-    print(elongations)
     plt.figure()
-    plt.title(f"Elongation vs Time, n={n}, dt={dt}, m_planet={m_planet}, m_star={m_star}")
+    plt.title(f"Elongation vs Time \n n={n}, dt={dt}, m_planet={m_planet}, m_star={m_star}")
     plt.xlabel("Time [s]")
     plt.ylabel("Elongation")
+    t = np.linspace(0, dt * timesteps, timesteps)
     for i, dist in enumerate(distances):
-        plt.plot(np.linspace(0, dt * timesteps, timesteps), elongations[i], label=f"{dist}")
+        plt.plot(t, elongations[i], label=f"{dist}")
+
     plt.legend(loc="best")
     plt.show()
 
     return
-
-
-
