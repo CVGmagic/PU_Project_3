@@ -35,15 +35,23 @@ def create_sphere_3D(m : np.ndarray, r : int, n : int):
     return points
 
 
-def create_relaxed_sphere_3D(m : np.ndarray, r : float, n : int) -> np.ndarray:
-    r = create_sphere_3D(m, r, n)
+def create_relaxed_sphere_3D(m : np.ndarray, positions : float, n : int) -> np.ndarray:
+    """
+    Creates a relaxed Sphere
+    :param m: Midpoint of the Sphere
+    :param positions: Radius of the initial Sphere
+    :param n: Number of particles in the Sphere
+    :returns: Positions of the particles
+    """
+
+    positions = create_sphere_3D(m, positions, n)
     mass = 10
     dt = 0.01
     v = np.full((n, 3), 0, dtype=float)
     eps_sq = epsilon * epsilon
 
     # Update acceleration
-    diff = r[:, None, :] - r[None, :, :] # stores 3D-vector between every two-point combination
+    diff = positions[:, None, :] - positions[None, :, :] # stores 3D-vector between every two-point combination
     dist_sq = np.sum(diff * diff, axis=-1) # stores 1D distance between evry two-point combination
     np.fill_diagonal(dist_sq, np.inf) # changes distance of two-point combination of same points to inf
     
@@ -54,10 +62,10 @@ def create_relaxed_sphere_3D(m : np.ndarray, r : float, n : int) -> np.ndarray:
     v += a * dt / 2
 
     for i in range(3): # We do some number of timesteps
-        r += v * dt
+        positions += v * dt
 
         # Recompute acceleration
-        diff = r[:, None, :] - r[None, :, :]  # stores 3D-vector between every two-point combination
+        diff = positions[:, None, :] - positions[None, :, :]  # stores 3D-vector between every two-point combination
         dist_sq = np.sum(diff * diff, axis=-1)  # stores 1D distance between evry two-point combination
         np.fill_diagonal(dist_sq, np.inf)  # changes distance of two-point combination of same points to inf
 
@@ -67,4 +75,12 @@ def create_relaxed_sphere_3D(m : np.ndarray, r : float, n : int) -> np.ndarray:
         # Update velocity
         v += a * dt
 
-    return r
+    # Find the furthest particle and scale the sphere back to the intended radius
+    diff_m = positions - m
+    dist_m_sq = np.sum(diff_m * diff_m, axis=1)
+    mx_sq = np.max(dist_m_sq)
+    mx = math.sqrt(mx_sq)
+    # Maybe switch to some number of standard deviations instead
+    positions *= (r / mx)
+
+    return positions

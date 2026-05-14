@@ -3,12 +3,16 @@ import time
 from acceleration.acceleration_calculator_3D import calculate_gravitational_acceleration
 from acceleration.barnes_hut_python import compute_accelerations
 import matplotlib.pyplot as plt
+from simulation.random_shape_creator_3D import create_relaxed_sphere_3D
+import math
+from simulation.constants import G
+from setup import generate_points
 
 
 def compute_covariance_matrix(positions) -> np.ndarray:
     """Computes the covariance matrix with planet centered coordinates"""
     # These are now cloud centered coords
-    X = positions - np.mean(positions[1:], axis=0) # Exclude particle 0 (the sun)
+    X = positions[1:] - np.mean(positions[1:], axis=0) # Exclude particle 0 (the sun)
 
     cov_matrix = X.T @ X / len(X)
 
@@ -25,7 +29,7 @@ def compute_principal_axis_lengths(positions) -> np.ndarray:
     return np.linalg.eigvalsh(cov_matrix)
 
 
-def compute_covariance_matrix_outliers_excluded(positions, threshold=3) -> np.ndarray:
+def compute_covariance_matrix_outliers_excluded(positions, threshold=2.5) -> np.ndarray:
     """
     Computes the covariance matrix with planet centered coordinates excluding outliers
 
@@ -33,7 +37,7 @@ def compute_covariance_matrix_outliers_excluded(positions, threshold=3) -> np.nd
     :param threshold: Defines how many standard deviations away a particle can be before being excluded
     """
     # These are now cloud centered coords
-    X = positions - np.mean(positions[1:], axis=0)  # Exclude particle 0 (the sun)
+    X = positions[1:] - np.mean(positions[1:], axis=0)  # Exclude particle 0 (the sun)
 
     dist = np.linalg.norm(X, axis=1)
     sigma = np.sqrt(np.sum((dist - np.mean(dist)) ** 2))
@@ -46,7 +50,7 @@ def compute_covariance_matrix_outliers_excluded(positions, threshold=3) -> np.nd
     return cov_matrix
 
 
-def compute_principal_axis_lengths_outliers_excluded(positions, threshold=3):
+def compute_principal_axis_lengths_outliers_excluded(positions, threshold=2.5):
     """
         :param positions: An array containing the positions
         :returns: An ndarray of length 3 containing the principal axis lengths
@@ -56,11 +60,17 @@ def compute_principal_axis_lengths_outliers_excluded(positions, threshold=3):
     return np.linalg.eigvalsh(cov_matrix)
 
 
+def compute_elongation(positions, threshold=2.5) -> float:
+    principal_axis_lengths = compute_principal_axis_lengths_outliers_excluded(r)
+    np.sort(principal_axis_lengths)
+    return principal_axis_lengths[2] / principal_axis_lengths[0]
+
+
 def benchmark_computation(particle_counts: list[int], do_standard=True, do_barnes_hut=True, opening_angles=[0.4], trials=100, dt=0.0001):
     n = len(particle_counts)
     standard_times = np.empty(n)
     barnes_hut_times = np.empty((n, len(opening_angles)))
-    r_init = np.random.random((n, 3)) * 15
+    r_init = create_relaxed_sphere_3D()
     v_init = np.random.random((n, 3)) * 15
     m_init = np.random.random(n) * 15
 
@@ -107,4 +117,40 @@ def benchmark_computation(particle_counts: list[int], do_standard=True, do_barne
         plt.plot(particle_counts, barnes_hut_times[:, i], label=f"Barnes hut, theta = {theta}")
     plt.legend(loc="best")
     plt.show()
+
+
+def planet_com(positions, masses) -> np.ndarray:
+    return np.sum(positions[1:] * masses[1:].reshape(-1, 1), axis=0) / np.sum(masses[1:])
+
+
+def circular_orbit_velocity(dist_star, m_star) -> float:
+    global G
+    return math.sqrt(G * m_star / dist_star)
+
+
+def roche_limit(m_planet, m_star, r_planet) -> float:
+    return 2.44 * r_planet * (m_star / m_planet)**(1/3)
+
+
+def plot_elongations(distances: np.ndarray, n=500, dt=0.001, m_planet=50_000, m_star: float=None, timesteps=1000):
+    """
+    Takes distances as a fraction of the roche limit and plots the axis elongation over some number of timesteps
+    :returns: Function unfinished, returns None for now
+    """
+    n = 500
+    dt = 0.0001
+    mass = m_planet / n
+    if m_star is None:
+        m_star = mass_planet * 333_000  # Sun earth ratio
+    roche = roche_limit(m_planet, m_star, r_planet)
+
+    elongations = np.empty((len(distances), timesteps))
+    for distance in distances:
+        distance_star = distance * roche
+        v_rotation = circular_orbit_velocity(distance_star, mass_star)
+
+    # TODO Maybe finish this function
+    return
+
+
 

@@ -7,6 +7,7 @@ from simulation.constants import G, eps_sq
 from vispy import scene, app
 from simulation.energy_calculator import calculate_potential_energies
 
+
 n = initial_conditions.n
 
 

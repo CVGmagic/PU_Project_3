@@ -75,7 +75,7 @@ def calculate_gravitational_acceleration(r, m, en_rel):
             a_grav = diff * m[j] * G * inv_dist_3
 
             """Calculate Pressure"""
-            a_pressure = -en_rel * diff / (dist_sq)**4.5 / m[i]
+            a_pressure = -en_rel * diff / (dist_sq + eps_sq)**4.5 / m[i]
 
             acc[i] += a_pressure + a_grav
 

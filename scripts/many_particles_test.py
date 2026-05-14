@@ -14,7 +14,7 @@ view.camera = 'turntable'
 n = 1
 # Particle data
 r = np.zeros((n + 1, 3))
-r[1:] = create_relaxed_sphere_3D(np.array([100, 0, 0]), r=3, n=n)
+r[1:] = create_relaxed_sphere_3D(np.array([100, 0, 0]), positions=3, n=n)
 
 sizes = np.full(n + 1, 10)
 sizes[0] = 30
