@@ -65,19 +65,25 @@ def calculate_gravitational_acceleration(r, m, en_rel):
             if i == j:
                 continue
 
-            diff = r[j] - r[i]
+            dx = r[j, 0] - r[i, 0]
+            dy = r[j, 1] - r[i, 1]
+            dz = r[j, 2] - r[i, 2]
 
-            dist_sq = diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2]
+            dist_sq = dx * dx + dy * dy + dz * dz
+            dist = math.sqrt(dist_sq)
 
             """Calculate Gravity"""
-            inv_dist_3 = 1.0 / math.sqrt(dist_sq + eps_sq)**3
+            inv_dist_3 = 1.0 / ((dist_sq + eps_sq) * dist)
 
-            a_grav = diff * m[j] * G * inv_dist_3
+            grav = m[j] * G * inv_dist_3
 
             """Calculate Pressure"""
-            a_pressure = -en_rel * diff / (dist_sq + eps_sq)**4.5 / m[i]
+            pressure = -en_rel / (dist_sq + eps_sq)**4.5 / m[i]
 
-            acc[i] += a_pressure + a_grav
+            a_tot = grav + pressure
+            acc[i, 0] += dx * a_tot
+            acc[i, 1] += dy * a_tot
+            acc[i, 2] += dz * a_tot
 
     return acc
 

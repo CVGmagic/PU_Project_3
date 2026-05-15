@@ -231,7 +231,7 @@ def compute_accelerations(particles, m, E_rel):
     upper[2] = np.max(particles[:, 2])
 
     center = (lower + upper) / 2.0
-    size = np.max(upper - lower) / 2.0
+    size = np.max(upper - lower) / 2.0 * 1.01 # To account for particles on the border
 
     nodes = List()
     root = Node(center, size)

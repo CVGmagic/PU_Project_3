@@ -112,6 +112,8 @@ def benchmark_computation(particle_counts: list[int], do_standard=True, do_barne
                 angle_times[j] = end_time - start_time
             barnes_hut_times[i] = angle_times
 
+        print(f"Particle count {particle_count} done")
+
     plt.figure()
     plt.title(f"Comparison between Standard and Barnes Hut Algorithm \n {trials} timesteps with dt = {dt}")
     plt.xlabel("Number of particles")
