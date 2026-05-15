@@ -1,6 +1,9 @@
 import numpy as np
 import math
-from simulation.constants import epsilon
+from simulation.constants import eps_sq
+from acceleration.acceleration_calculator_3D import calculate_gravitational_acceleration
+from simulation.energy_calculator import calculate_energy_relation
+
 
 def single_point_cuboid(lower: np.ndarray, upper: np.ndarray):
     """Returns a single point inside the region bounded by the lower left and upper right corner of the cuboid"""
@@ -36,7 +39,7 @@ def create_sphere_3D(m : np.ndarray, r : int, n : int):
     return points
 
 
-def create_relaxed_sphere_3D(m : np.ndarray, r : float, n : int, relaxation_steps: int=3) -> np.ndarray:
+def create_relaxed_sphere_3D(m : np.ndarray, r : float, n : int, expansion_steps: int = 3, contraction_steps: int = 10) -> np.ndarray:
     """
     Creates a relaxed Sphere
     :param m: Midpoint of the Sphere
@@ -47,34 +50,30 @@ def create_relaxed_sphere_3D(m : np.ndarray, r : float, n : int, relaxation_step
     """
 
     positions = create_sphere_3D(m, r, n)
-    mass = 10
-    dt = 0.01
-    v = np.full((n, 3), 0, dtype=float)
-    eps_sq = epsilon * epsilon
+    dt = 0.0001
+    mass = np.ones(n, dtype=np.float64)
 
-    # Update acceleration
-    diff = positions[:, None, :] - positions[None, :, :] # stores 3D-vector between every two-point combination
-    dist_sq = np.sum(diff * diff, axis=-1) # stores 1D distance between evry two-point combination
-    np.fill_diagonal(dist_sq, np.inf) # changes distance of two-point combination of same points to inf
-    
-    inv_dist_cubed = 1 / ((dist_sq + eps_sq) * np.sqrt(dist_sq + eps_sq))
-    a = np.sum(diff * inv_dist_cubed[:, :, None], axis=1) / mass
+    """Expansion"""
+    a = -calculate_gravitational_acceleration(positions, mass, 0)
+    v = a * (dt / 2)
 
-    # Half velocity step
-    v += a * dt / 2
-
-    for i in range(relaxation_steps): # We do some number of timesteps
+    for i in range(expansion_steps): # We do some number of timesteps
         positions += v * dt
 
-        # Recompute acceleration
-        diff = positions[:, None, :] - positions[None, :, :]  # stores 3D-vector between every two-point combination
-        dist_sq = np.sum(diff * diff, axis=-1)  # stores 1D distance between evry two-point combination
-        np.fill_diagonal(dist_sq, np.inf)  # changes distance of two-point combination of same points to inf
+        a = -calculate_gravitational_acceleration(positions, mass, 0)
+        v += a * dt
 
-        inv_dist_cubed = 1 / ((dist_sq + eps_sq) * np.sqrt(dist_sq + eps_sq))
-        a = np.sum(diff * inv_dist_cubed[:, :, None], axis=1) / mass
+        v *= 0.9 # Damping
 
-        # Update velocity
+    """Contraction"""
+    e_rel = calculate_energy_relation(positions, mass)
+    a = calculate_gravitational_acceleration(positions, mass, e_rel)
+    v = a * (dt / 2)
+
+    for i in range(contraction_steps):
+        positions += v * dt
+
+        a = calculate_gravitational_acceleration(positions, mass, e_rel)
         v += a * dt
 
     # Find the furthest particle and scale the sphere back to the intended radius

@@ -174,8 +174,8 @@ def set_mass_and_com(nodes, particles, m, node_idx):
 # =========================
 
 @njit
-def acceleration(nodes, particles, m, node_idx, p_idx, E_rel):
-    global theta, eps_sq, G
+def acceleration(nodes, particles, m, node_idx, p_idx, E_rel, theta):
+    global eps_sq, G
 
     node = nodes[node_idx]
 
@@ -207,7 +207,7 @@ def acceleration(nodes, particles, m, node_idx, p_idx, E_rel):
     for i in range(8):
         cidx = node.children[i]
         if cidx != -1:
-            child_acc = acceleration(nodes, particles, m, cidx, p_idx, E_rel)
+            child_acc = acceleration(nodes, particles, m, cidx, p_idx, E_rel, theta)
             res[0] += child_acc[0]
             res[1] += child_acc[1]
             res[2] += child_acc[2]
@@ -219,7 +219,7 @@ def acceleration(nodes, particles, m, node_idx, p_idx, E_rel):
 # MAIN FUNCTION
 # =========================
 @njit(parallel=True)
-def compute_accelerations(particles, m, E_rel):
+def compute_accelerations(particles, m, E_rel, theta=0.4):
     lower = np.zeros(3, dtype=np.float64)
     lower[0] = np.min(particles[:, 0])
     lower[1] = np.min(particles[:, 1])
@@ -245,7 +245,7 @@ def compute_accelerations(particles, m, E_rel):
     acc = np.zeros_like(particles)
 
     for i in prange(len(particles)):
-        acc[i] = acceleration(nodes, particles, m, 0, i, E_rel)
+        acc[i] = acceleration(nodes, particles, m, 0, i, E_rel, theta)
 
     return acc
 

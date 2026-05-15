@@ -54,3 +54,7 @@ def calculate_potential_energies(r, m):
 
     return gravity_potential_energy, pressure_potential_energy
 
+
+def calculate_energy_relation(r, m):
+    sum_acc_gravity, sum_acc_pressure = calculate_potential_energies(r, m)
+    return sum_acc_gravity / sum_acc_pressure

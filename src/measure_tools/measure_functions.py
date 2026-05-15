@@ -78,11 +78,10 @@ def benchmark_computation(particle_counts: list[int], do_standard=True, do_barne
         n = particle_count
         r_init = create_relaxed_sphere_3D(np.array([0, 0, 0]), 1, n)
         v_init = np.random.random((n, 3))
-        m_init = np.random.random(n) * 100
+        m = np.random.random(n) * 100
         if do_standard:
             r = np.copy(r_init)
             v = np.copy(v_init)
-            m = np.copy(m_init)
             # Warmup call
             calculate_gravitational_acceleration(r, m, e_rel)
 
@@ -92,24 +91,27 @@ def benchmark_computation(particle_counts: list[int], do_standard=True, do_barne
                 v += a * dt
                 r += v * dt
             end_time = time.perf_counter()
-            standard_times[i] = end_time - start_time
+            standard_times[i] = (end_time - start_time) / trials
+
+
+        print("Standard done")
 
         if do_barnes_hut:
             angle_times = np.zeros(len(opening_angles))
             for j, theta in enumerate(opening_angles):
                 r = np.copy(r_init)
                 v = np.copy(v_init)
-                m = np.copy(m_init)
                 # Warmup call
-                compute_accelerations(r, m, e_rel)
+                compute_accelerations(r, m, e_rel, theta)
 
+                print("Barnes Hut warmup call done")
                 start_time = time.perf_counter()
                 for _ in range(trials):
-                    a = compute_accelerations(r, m, e_rel)
+                    a = compute_accelerations(r, m, e_rel, theta)
                     v += a * dt
                     r += v * dt
                 end_time = time.perf_counter()
-                angle_times[j] = end_time - start_time
+                angle_times[j] = (end_time - start_time) / trials
             barnes_hut_times[i] = angle_times
 
         print(f"Particle count {particle_count} done")
@@ -117,7 +119,8 @@ def benchmark_computation(particle_counts: list[int], do_standard=True, do_barne
     plt.figure()
     plt.title(f"Comparison between Standard and Barnes Hut Algorithm \n {trials} timesteps with dt = {dt}")
     plt.xlabel("Number of particles")
-    plt.ylabel("Elapsed time [s]")
+    plt.ylabel("Time per function call [s]")
+    plt.yscale("log")
     plt.plot(particle_counts, standard_times, label="Standard Times")
     for i, theta in enumerate(opening_angles):
         plt.plot(particle_counts, barnes_hut_times[:, i], label=f"Barnes hut, theta = {theta}")
@@ -148,7 +151,8 @@ def plot_elongations(distances: list[float], n: int = 500, dt=0.001, m_planet=50
         m_star = m_planet * 1e11  # Sun earth ratio
     roche = roche_limit(m_planet, m_star, 1)
 
-    r_init = generate_points(n, 1, 0, dt=dt, pre_relax=pre_relax, m=np.full(n, mass))
+    r_init = create_relaxed_sphere_3D(np.array([0, 0, 0]), 1, n + 1)
+    r_init[0] = [0, 0, 0]
     m = np.full(n + 1, mass)
     m[0] = m_star
 
@@ -180,6 +184,7 @@ def plot_elongations(distances: list[float], n: int = 500, dt=0.001, m_planet=50
     plt.title(f"Elongation vs Time \n n={n}, dt={dt}, m_planet={m_planet}, m_star={m_star}")
     plt.xlabel("Time [s]")
     plt.ylabel("Elongation")
+    plt.yscale("log")
     t = np.linspace(0, dt * timesteps, timesteps)
     for i, dist in enumerate(distances):
         plt.plot(t, elongations[i], label=f"{dist}")
