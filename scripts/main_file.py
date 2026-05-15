@@ -81,10 +81,7 @@ def add_solar_point(distance_star, v_rotation, central_body_m):
 
 def update_simulation(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with correct gravity
-    global r, v, m, dt, energy_relation, view, total_time, sim_step_count, sim_start_time
-
-    if sim_step_count == 0:
-        sim_start_time = time.perf_counter()
+    global r, v, m, dt, energy_relation, view, total_time, sim_step_count, sim_start_time, elongations, n, mass_planet, mass_star
 
     r += v * dt
     a = calculate_gravitational_acceleration(r, m, energy_relation)
@@ -94,24 +91,23 @@ def update_simulation(event): #  'event' is needed with the timer which later al
     view.camera.center = planet_com(r, m)
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
-    print(compute_elongation(r, percentile=95))
+    elongations.append(compute_elongation(r, percentile=95))
 
     sim_step_count += 1
 
-    if sim_step_count == 100:
-        end_time = time.perf_counter()
-        total_time = end_time - sim_start_time
-
-        if stop_time:
-            print(total_time)
+    if sim_step_count >= plot_steps:
+        plt.figure()
+        t = np.linspace(0, plot_steps * dt, plot_steps)
+        plt.plot(t, elongations)
+        plt.title(f"Elongation vs Time \n n={n}, dt={dt}, m_planet={mass_planet}, m_star={mass_star}")
+        plt.xlabel("Time [s]")
+        plt.ylabel("Elongation")
+        plt.show()
 
 
 def update_simulation_barnes_hut(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with correct gravity
     global r, v, m, dt, energy_relation, view, total_time, sim_step_count, sim_start_time
-
-    if sim_step_count == 0:
-        sim_start_time = time.perf_counter()
 
     a = barnes_hut_python.compute_accelerations(r, m, energy_relation)
     v += a * dt
@@ -121,13 +117,9 @@ def update_simulation_barnes_hut(event): #  'event' is needed with the timer whi
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
 
-    if sim_step_count == 100:
-        end_time = time.perf_counter()
-        total_time = end_time - sim_start_time
 
-        if stop_time:
-            print(total_time)
-
+elongations = []
+plot_steps = 10000
 
 n = 500
 barnes_hut = False
@@ -137,8 +129,8 @@ mass = mass_planet / n
 max_steps = 50
 mass_star = mass_planet * 1e11 # Made mass dependent on planet mass instead of particle mass
 roche = roche_limit(mass_planet, mass_star, 1)
-distance_star = 2 * roche # 3.3 (gives a nice spiral)
-v_rotation = circular_orbit_velocity(distance_star, mass_star)
+distance_star =  1 * roche # 3.3 (gives a nice spiral)
+v_rotation = circular_orbit_velocity(distance_star, mass_star) - 3
 stop_time = False
 
 def create_canvas():

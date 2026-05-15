@@ -120,7 +120,7 @@ def benchmark_computation(particle_counts: list[int], do_standard=True, do_barne
     plt.title(f"Comparison between Standard and Barnes Hut Algorithm \n {trials} timesteps with dt = {dt}")
     plt.xlabel("Number of particles")
     plt.ylabel("Time per function call [s]")
-    plt.yscale("log")
+    #plt.yscale("log")
     plt.plot(particle_counts, standard_times, label="Standard Times")
     for i, theta in enumerate(opening_angles):
         plt.plot(particle_counts, barnes_hut_times[:, i], label=f"Barnes hut, theta = {theta}")
@@ -153,7 +153,7 @@ def plot_elongations(distances: list[float], n: int = 500, dt=0.001, m_planet=50
 
     r_init = create_relaxed_sphere_3D(np.array([0, 0, 0]), 1, n + 1, contraction_steps=pre_relax)
     m = np.full(n + 1, mass)
-    energy_relation = calculate_energy_relation(r_init, m)
+    energy_relation = calculate_new_energy_relation(n, mass, 1)
 
     r_init[0] = [0, 0, 0]
     m[0] = m_star
