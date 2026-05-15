@@ -1,5 +1,6 @@
 import numpy as np
 from simulation.constants import G, epsilon, eps_sq
+import math
 
 
 def get_gravitational_energy(r, m) -> float:
@@ -32,7 +33,7 @@ def get_total_energy(r, m, v) -> float:
 
 def calculate_potential_energies(r, m):
     """
-    Calculates Gravity PE and Pressure PE in one pass.
+    Calculates Gravity GE and Pressure PE in one pass.
     :returns: (gravity_potential_energy, pressure_potential_energy)
     """
     # 1. Core distance calculations
@@ -49,8 +50,8 @@ def calculate_potential_energies(r, m):
     gravity_potential_energy = -0.5 * np.sum(mass_matrix * (1 / dist)) * G
 
     # 4. Pressure Energy (Integral of 1/r^8 is -1/(7 * r^7))
-    # r^5 = (dist_sq^3 * dist)
-    pressure_potential_energy = -0.5 * np.sum(mass_matrix * (1 / (4 * dist_sq ** 3 * dist)))
+    # r^7 = (dist_sq^3 * dist)
+    pressure_potential_energy = -0.5 * np.sum(1 / (7 * dist_sq**3 * dist))
 
     return gravity_potential_energy, pressure_potential_energy
 
@@ -58,3 +59,13 @@ def calculate_potential_energies(r, m):
 def calculate_energy_relation(r, m):
     sum_acc_gravity, sum_acc_pressure = calculate_potential_energies(r, m)
     return sum_acc_gravity / sum_acc_pressure
+
+
+def calculate_new_energy_relation(particle_count, particle_mass, planet_radius) -> float:
+    """
+    Calculates a new energy relation, which aims to keep particles at a
+    specific distance r0, which is deterimined by the particle count and the planet_size
+    """
+    r0 = 1.61 * planet_radius / particle_count**(1/3)
+
+    return G * particle_mass * particle_mass * r0**6 #* 3 # Safety factor

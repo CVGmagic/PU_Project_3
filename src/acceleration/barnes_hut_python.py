@@ -193,7 +193,7 @@ def acceleration(nodes, particles, m, node_idx, p_idx, E_rel, theta):
 
     if node.half_size / dist < theta and not is_in_node(node, p_idx, particles):
         f_grav = float(G * node.mass * inv_dist3)
-        f_press = float(-E_rel * 1.0 / (dist_sq ** 4) / dist / m[p_idx])
+        f_press = float(-E_rel * 1.0 / ((dist_sq + eps_sq) ** 4) / dist / m[p_idx])
         f_tot = f_grav + f_press
 
         force_tot = np.empty(3, dtype=np.float64)

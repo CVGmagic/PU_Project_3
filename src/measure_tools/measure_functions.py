@@ -7,7 +7,7 @@ from simulation.random_shape_creator_3D import create_relaxed_sphere_3D
 import math
 from simulation.constants import G
 from setup import generate_points
-from simulation.energy_calculator import calculate_potential_energies
+from simulation.energy_calculator import calculate_potential_energies, calculate_new_energy_relation
 from vispy import app, scene
 
 
@@ -156,8 +156,7 @@ def plot_elongations(distances: list[float], n: int = 500, dt=0.001, m_planet=50
     m = np.full(n + 1, mass)
     m[0] = m_star
 
-    sum_acc_gravity, sum_acc_pressure = calculate_potential_energies(r_init[1:], m[1:])
-    energy_relation = sum_acc_gravity / sum_acc_pressure
+    energy_relation = calculate_new_energy_relation(n, mass, 1)
 
 
     elongations = np.empty((len(distances), timesteps))
@@ -178,13 +177,13 @@ def plot_elongations(distances: list[float], n: int = 500, dt=0.001, m_planet=50
             r += v * dt
             a = calculate_gravitational_acceleration(r, m, energy_relation)
             v += a * dt
-            elongations[i, j] = compute_elongation(r)
+            elongations[i, j] = compute_elongation(r, percentile=100)
 
     plt.figure()
     plt.title(f"Elongation vs Time \n n={n}, dt={dt}, m_planet={m_planet}, m_star={m_star}")
     plt.xlabel("Time [s]")
     plt.ylabel("Elongation")
-    plt.yscale("log")
+    #plt.yscale("log")
     t = np.linspace(0, dt * timesteps, timesteps)
     for i, dist in enumerate(distances):
         plt.plot(t, elongations[i], label=f"{dist}")

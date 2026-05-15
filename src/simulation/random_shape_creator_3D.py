@@ -2,7 +2,7 @@ import numpy as np
 import math
 from simulation.constants import eps_sq
 from acceleration.acceleration_calculator_3D import calculate_gravitational_acceleration
-from simulation.energy_calculator import calculate_energy_relation
+from simulation.energy_calculator import calculate_new_energy_relation
 
 
 def single_point_cuboid(lower: np.ndarray, upper: np.ndarray):
@@ -66,7 +66,7 @@ def create_relaxed_sphere_3D(m : np.ndarray, r : float, n : int, expansion_steps
         v *= 0.9 # Damping
 
     """Contraction"""
-    e_rel = calculate_energy_relation(positions, mass)
+    e_rel = calculate_new_energy_relation(n, 1, r)
     a = calculate_gravitational_acceleration(positions, mass, e_rel)
     v = a * (dt / 2)
 
@@ -75,6 +75,8 @@ def create_relaxed_sphere_3D(m : np.ndarray, r : float, n : int, expansion_steps
 
         a = calculate_gravitational_acceleration(positions, mass, e_rel)
         v += a * dt
+
+        v *= 0.9
 
     # Find the furthest particle and scale the sphere back to the intended radius
     diff_m = positions - m

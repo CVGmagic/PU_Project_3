@@ -3,7 +3,7 @@ import time
 from vispy import app, scene
 from simulation import random_shape_creator_3D
 from acceleration.acceleration_calculator_3D import calc_acc_rep_np, calculate_gravitational_acceleration
-from simulation.energy_calculator import calculate_potential_energies
+from simulation.energy_calculator import calculate_potential_energies, calculate_new_energy_relation, calculate_energy_relation
 from renderers import renderer_3D
 from acceleration import barnes_hut_python
 from measure_tools.measure_functions import compute_principal_axis_lengths, \
@@ -15,9 +15,11 @@ from simulation.constants import G
 
 def update_starting_position(event): # 'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with wrong gravity
-    global r, v, m, dt, max_steps, step_count, barnes_hut
+    global r, v, m, max_steps, step_count, barnes_hut
 
-    a = calc_acc_rep_np(r, m)
+    dt = 0.0001
+
+    a = calc_acc_rep_np(r, np.full_like(m, 100))
 
     v += a * dt
     v *= 0.9 # adds damping
@@ -34,6 +36,7 @@ def update_starting_position(event): # 'event' is needed with the timer which la
         update_conditions()
         add_solar_point(distance_star, v_rotation, mass_star)
 
+        """Half step to prepare for Leapfrog"""
         a = calculate_gravitational_acceleration(r, m, energy_relation)
         v += a * (dt / 2)
 
@@ -49,15 +52,15 @@ def scale_r_back():
     global r
 
     max_dist = np.sqrt(np.sum(r * r, axis=1).max())
-    r = r/max_dist
+    r = r / max_dist
 
 
 def update_conditions(): #  'event' is needed with the timer which later allows the command timer.stop()
     global r, v, m, dt, energy_relation
 
-    sum_acc_gravity, sum_acc_pressure = calculate_potential_energies(r, m)
-
-    energy_relation = sum_acc_gravity / sum_acc_pressure
+    #energy_relation = calculate_energy_relation(r, m)
+    energy_relation = calculate_new_energy_relation(r.shape[0], m[0], 1)
+    #print(energy_relation)
 
 
 def add_solar_point(distance_star, v_rotation, central_body_m):
@@ -127,13 +130,13 @@ def update_simulation_barnes_hut(event): #  'event' is needed with the timer whi
 
 n = 500
 barnes_hut = False
-dt = 0.001
-mass = 100
-mass_planet = n * mass
+dt = 0.0001
+mass_planet = 5e4
+mass = mass_planet / n
 max_steps = 50
-mass_star = n * mass * 1e11 # Made mass dependent on planet mass instead of particle mass
+mass_star = mass_planet * 1e11 # Made mass dependent on planet mass instead of particle mass
 roche = roche_limit(mass_planet, mass_star, 1)
-distance_star = 0.05 * roche # 3.3 (gives a nice spiral)
+distance_star = 5 # 2 * roche # 3.3 (gives a nice spiral)
 v_rotation = circular_orbit_velocity(distance_star, mass_star)
 stop_time = False
 
@@ -157,7 +160,7 @@ r = create_canvas()
 
 m = np.full(n, mass) # creates array with n elements and (masses of 100)
 v = np.zeros((n, 3)) # v has n elements in 3D filled with 0's
-a = calc_acc_rep_np(r, m) # calculates the acceleration of every single r based on their location (r)
+a = calc_acc_rep_np(r, np.full_like(m, 100)) # calculates the acceleration of every single r based on their location (r)
 #m[n] = 33300000
 v += a * dt / 2 # updates v
 sim_step_count = 0
