@@ -59,7 +59,7 @@ def update_conditions(): #  'event' is needed with the timer which later allows 
     global r, v, m, dt, energy_relation
 
     #energy_relation = calculate_energy_relation(r, m)
-    energy_relation = calculate_new_energy_relation(r.shape[0], m[0], 1)
+    energy_relation = calculate_new_energy_relation(r.shape[0], m[-1], 1)
     #print(energy_relation)
 
 
@@ -94,6 +94,7 @@ def update_simulation(event): #  'event' is needed with the timer which later al
     view.camera.center = planet_com(r, m)
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
+    print(compute_elongation(r, percentile=95))
 
     sim_step_count += 1
 
@@ -130,13 +131,13 @@ def update_simulation_barnes_hut(event): #  'event' is needed with the timer whi
 
 n = 500
 barnes_hut = False
-dt = 0.0001
-mass_planet = 5e4
+dt = 0.001
+mass_planet = 5e10
 mass = mass_planet / n
 max_steps = 50
 mass_star = mass_planet * 1e11 # Made mass dependent on planet mass instead of particle mass
 roche = roche_limit(mass_planet, mass_star, 1)
-distance_star = 5 # 2 * roche # 3.3 (gives a nice spiral)
+distance_star = 2 * roche # 3.3 (gives a nice spiral)
 v_rotation = circular_orbit_velocity(distance_star, mass_star)
 stop_time = False
 

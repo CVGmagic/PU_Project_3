@@ -7,7 +7,7 @@ from simulation.random_shape_creator_3D import create_relaxed_sphere_3D
 import math
 from simulation.constants import G
 from setup import generate_points
-from simulation.energy_calculator import calculate_potential_energies, calculate_new_energy_relation
+from simulation.energy_calculator import calculate_potential_energies, calculate_new_energy_relation, calculate_energy_relation
 from vispy import app, scene
 
 
@@ -151,12 +151,14 @@ def plot_elongations(distances: list[float], n: int = 500, dt=0.001, m_planet=50
         m_star = m_planet * 1e11  # Sun earth ratio
     roche = roche_limit(m_planet, m_star, 1)
 
-    r_init = create_relaxed_sphere_3D(np.array([0, 0, 0]), 1, n + 1)
-    r_init[0] = [0, 0, 0]
+    r_init = create_relaxed_sphere_3D(np.array([0, 0, 0]), 1, n + 1, contraction_steps=pre_relax)
     m = np.full(n + 1, mass)
+    energy_relation = calculate_energy_relation(r_init, m)
+
+    r_init[0] = [0, 0, 0]
     m[0] = m_star
 
-    energy_relation = calculate_new_energy_relation(n, mass, 1)
+
 
 
     elongations = np.empty((len(distances), timesteps))
@@ -177,7 +179,7 @@ def plot_elongations(distances: list[float], n: int = 500, dt=0.001, m_planet=50
             r += v * dt
             a = calculate_gravitational_acceleration(r, m, energy_relation)
             v += a * dt
-            elongations[i, j] = compute_elongation(r, percentile=100)
+            elongations[i, j] = compute_elongation(r, percentile=95)
 
     plt.figure()
     plt.title(f"Elongation vs Time \n n={n}, dt={dt}, m_planet={m_planet}, m_star={m_star}")
