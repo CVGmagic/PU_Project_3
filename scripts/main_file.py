@@ -81,7 +81,7 @@ def add_solar_point(distance_star, v_rotation, central_body_m):
 
 def update_simulation(event): #  'event' is needed with the timer which later allows the command timer.stop()
     # update positions every frame with correct gravity
-    global r, v, m, dt, energy_relation, view, total_time, sim_step_count, sim_start_time, elongations, n, mass_planet, mass_star
+    global r, v, m, dt, energy_relation, view, total_time, sim_step_count, sim_start_time, elongations, n, mass_planet, mass_star, scatter
 
     r += v * dt
     a = calculate_gravitational_acceleration(r, m, energy_relation)
@@ -95,7 +95,25 @@ def update_simulation(event): #  'event' is needed with the timer which later al
 
     sim_step_count += 1
 
-    if sim_step_count >= plot_steps:
+    if sim_step_count == plot_steps:
+        timer_accurate.stop()
+
+        colors = np.full((n+1, 4), (1, 1, 1, 1))  # All set to white at beginning
+
+        com = np.mean(r[1:], axis=0)
+        dists = np.linalg.norm(r - com, axis=1)
+
+        threshold = np.percentile(dists[1:], 95)
+        mask = dists > threshold
+
+        colors[mask] = (1, 0, 0, 1)
+        colors[0] = (1, 1, 1, 1)
+
+        renderer_3D.plot_points_3D_PyVis(r, scatter, sizes, colors)  # fills scatter with coordinates + sizes
+
+        timer_outliers.start()
+
+    if False:
         plt.figure()
         t = np.linspace(0, plot_steps * dt, plot_steps)
         plt.plot(t, elongations)
@@ -117,9 +135,12 @@ def update_simulation_barnes_hut(event): #  'event' is needed with the timer whi
     renderer_3D.plot_points_3D_PyVis(r, scatter, sizes)
 
 
+def rotate_camera(event):
+    view.camera.azimuth += 0.25
+
 
 elongations = []
-plot_steps = 10000
+plot_steps = 3000
 
 n = 500
 barnes_hut = False
@@ -130,7 +151,7 @@ max_steps = 50
 mass_star = mass_planet * 1e11 # Made mass dependent on planet mass instead of particle mass
 roche = roche_limit(mass_planet, mass_star, 1)
 distance_star =  1 * roche # 3.3 (gives a nice spiral)
-v_rotation = circular_orbit_velocity(distance_star, mass_star) - 3
+v_rotation = circular_orbit_velocity(distance_star, mass_star)
 stop_time = False
 
 def create_canvas():
@@ -163,5 +184,6 @@ step_count = 0
 timer1 = app.Timer(0.0016, connect=update_starting_position, start=True)  # ~60 FPS but actually limited by calculations so same as while run do
 timer_accurate = app.Timer(0.0016, connect=update_simulation, start=False) # ~60 FPS but actually limited by calculations so same as while run do
 timer_barnes_hut =  app.Timer(0.0016, connect=update_simulation_barnes_hut, start=False) # not correct function
+timer_outliers = app.Timer(0.0016, connect=rotate_camera, start=False)
 
 app.run()

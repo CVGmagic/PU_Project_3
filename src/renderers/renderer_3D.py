@@ -12,16 +12,19 @@ def plot_points_3D_plt(r: np.ndarray, ax) -> None:
     return
 
 
-def plot_points_3D_PyVis(r: np.ndarray, scatter, sizes=np.array([])) -> None:
+def plot_points_3D_PyVis(r: np.ndarray, scatter, sizes=np.array([]), colors=None) -> None:
     """
     Creates a 3D plot on scatter using the positions in r, and the sizes in sizes.
     If no sizes are provided, 1 is used as a default size
     """
     if sizes.shape[0] == 0:
-        sizes = np.ones((r.size))
+        sizes = np.ones((r.shape[0]))
     elif sizes.shape[0] != r.shape[0]:
         raise ValueError("r and sizes must have the same length")
 
-    scatter.set_data(r, size=sizes, face_color=(1, 1, 1, 1))
+    if colors is None:
+        colors = np.ones((r.shape[0], 4))
+
+    scatter.set_data(r, size=sizes, face_color=colors, edge_color=None)
 
     return
